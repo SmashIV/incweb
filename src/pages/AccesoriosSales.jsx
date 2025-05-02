@@ -1,7 +1,7 @@
 
 function AccesoriosSales() {
     return (  
-        <div className="text-black">
+        <div >
             3
         </div>
     );

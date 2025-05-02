@@ -1,7 +1,7 @@
 
 function HogarSales() {
     return ( 
-        <div className="text-black">
+        <div>
             4
         </div>
      );

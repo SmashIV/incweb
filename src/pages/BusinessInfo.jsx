@@ -2,7 +2,7 @@
 function BusinessInfo() {
     return ( 
         <>
-            <div className="text-black">
+            <div>
                 <p>5</p>
             </div>
         </>

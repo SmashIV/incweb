@@ -1,7 +1,7 @@
 
 function MujerSales() {
     return ( 
-        <div className="text-black">
+        <div>
             2
         </div>
     );

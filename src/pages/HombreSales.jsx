@@ -1,7 +1,7 @@
 
 function HombreSales() {
     return (  
-        <div className="text-black">
+        <div>
             1
         </div>
     );
