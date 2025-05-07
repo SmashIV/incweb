@@ -44,9 +44,18 @@ export default function ProductModal({ item, onClose }) {
             <div className="relative z-[99999] bg-white w-full max-w-6xl rounded-xl shadow-2xl overflow-hidden transform transition-all">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-50 p-2 bg-white/90 rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                    className="absolute top-4 right-4 z-50 p-1"
+                    style={{ background: 'none', border: 'none' }}
+                    aria-label="Cerrar"
                 >
-                    ✕
+                    <motion.span
+                        whileHover={{ scale: 1.2, color: '#111' }}
+                        whileTap={{ scale: 0.9, color: '#e11d48' }}
+                        className="text-gray-400 text-2xl font-bold transition-colors duration-200 select-none"
+                        style={{ display: 'inline-block', lineHeight: 1 }}
+                    >
+                        ✕
+                    </motion.span>
                 </button>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">

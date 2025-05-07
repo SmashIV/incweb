@@ -12,7 +12,8 @@ const waveColors = [
 
 function WaveText({ text }) {
   return (
-    <p className="text-lg md:text-xl font-medium flex flex-wrap justify-center gap-0.5 relative z-20 select-none">
+    <p className="text-lg md:text-xl font-medium flex flex-wrap justify-center gap-0.5 relative z-20 select-none max-w-3xl mx-auto"
+       style={{ whiteSpace: 'normal', wordBreak: 'keep-all' }}>
       {text.split('').map((char, i) => (
         <motion.span
           key={i}
@@ -27,7 +28,7 @@ function WaveText({ text }) {
             delay: i * 0.12,
             ease: 'easeInOut',
           }}
-          style={{ fontFamily: 'Montserrat, Inter, Poppins, Nunito Sans, sans-serif' }}
+          style={{ fontFamily: 'Montserrat, Inter, Poppins, Nunito Sans, sans-serif', display: 'inline-block' }}
         >
           {char === ' ' ? '\u00A0' : char}
         </motion.span>

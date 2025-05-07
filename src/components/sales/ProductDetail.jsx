@@ -23,7 +23,7 @@ function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(images[0]);
   const [selectedSize, setSelectedSize] = useState('M');
   const [showModal, setShowModal] = useState(false);
-  const [showSizes, setShowSizes] = useState(false);
+  const [showSizes, setShowSizes] = useState(true);
   const sizes = ['XS', 'S', 'M', 'L', 'XL'];
 
   return (
@@ -42,7 +42,7 @@ function ProductDetail() {
           ))}
         </div>
 
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center lg:items-start lg:justify-center">
           <div className="w-full max-w-md aspect-[4/5] bg-gray-100 overflow-hidden flex items-center justify-center shadow-md">
             <img src={selectedImage} alt={product.title} className="object-cover w-full h-full" />
           </div>
@@ -56,6 +56,37 @@ function ProductDetail() {
             <div>
               <p className="text-lg text-gray-700 mb-4">{product.description}</p>
             </div>
+            <AnimatePresence>
+              {!showSizes && (
+                <motion.div
+                  key="composicion-cuidado"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.4, ease: 'easeInOut' }}
+                >
+                  <hr className="my-6 border-gray-300" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Composición</h3>
+                    <p className="text-gray-700 mb-2">100% BABY ALPACA</p>
+                  </div>
+                  <hr className="my-6 border-gray-300" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Cuidado</h3>
+                    <p className="text-gray-700 whitespace-pre-line mb-2">
+                      Limpieza al seco, usando cualquier solvente excepto tricloroetileno.
+
+Planchar a baja temperatura (110°C)
+
+No almacenar en bolsa de plástico, puede crear humedad.
+
+Como regla general, recomendamos no colgar este tipo de prenda.
+                    </p>
+                  </div>
+                  <hr className="my-6 border-gray-300" />
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div className="flex flex-col gap-6 mt-6">
               {!showSizes && (
                 <motion.button
@@ -118,11 +149,19 @@ function ProductDetail() {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                 <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative animate-fade-in">
                   <button
-                    className="absolute top-3 right-3 text-gray-400 hover:text-black text-2xl font-bold"
+                    className="absolute top-3 right-3 p-1"
+                    style={{ background: 'none', border: 'none' }}
                     onClick={() => setShowModal(false)}
                     aria-label="Cerrar"
                   >
-                    ×
+                    <motion.span
+                      whileHover={{ scale: 1.2, color: '#111' }}
+                      whileTap={{ scale: 0.9, color: '#e11d48' }}
+                      className="text-gray-400 text-2xl font-bold transition-colors duration-200 select-none"
+                      style={{ display: 'inline-block', lineHeight: 1 }}
+                    >
+                      ×
+                    </motion.span>
                   </button>
                   <h2 className="text-xl font-bold mb-4 text-center">Tabla de medidas (cm)</h2>
                   <table className="w-full text-sm text-center border-collapse">
