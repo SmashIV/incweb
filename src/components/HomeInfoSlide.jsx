@@ -12,20 +12,30 @@ import { slidesData } from '../constants/infoSlide';
 function HomeInfoSlide() {
     return ( 
         <div className='flex items-center justify-center flex-col h-screen bg-white'>
+            <h1 className='text-center text-black font-extrabold text-6xl mb-20'>Explora nuestras novedades.</h1>
             <Swiper
-                breakpoints={
-                    {
-                        340: {
-                            slidesPerView: 3,
-                            spaceBetween: 15,
-                        },
-                        700: {
-                            slidesPerView: 4,
-                            spaceBetween: 15,
-                        },
-                    }
-                }
-
+                breakpoints={{
+                    0: {
+                        slidesPerView: 1,
+                        spaceBetween: 15,
+                    },
+                    480: {
+                        slidesPerView: 1.2,
+                        spaceBetween: 18,
+                    },
+                    700: {
+                        slidesPerView: 2,
+                        spaceBetween: 24,
+                    },
+                    1024: {
+                        slidesPerView: 3,
+                        spaceBetween: 32,
+                    },
+                    1400: {
+                        slidesPerView: 4,
+                        spaceBetween: 40,
+                    },
+                }}
                 freeMode={true}
                 pagination={{
                     clickable: true,
@@ -35,7 +45,7 @@ function HomeInfoSlide() {
             >
                 {slidesData.map((item) => (
                     <SwiperSlide key={item.title}>
-                        <div className="flex flex-col gap-6 group relative shadow-lg text-white rounded-2xl px-6 py-8 h-[250px] lg:h-[400px] lg:w-[350px]">
+                        <div className="flex flex-col gap-6 group relative shadow-lg text-white rounded-2xl px-6 py-8 h-[250px] lg:h-[900px] lg:w-[450px] overflow-hidden">
                             <div className='absolute inset-0 bg-cover bg-center' style={{backgroundImage: `url(${item.bgImage})`}}/>
                             <div className='absolute inset-0 bg-black opacity-10 group-hover:opacity-50'/>
                             <div className='relative flex flex-col gap-3'>
@@ -48,6 +58,7 @@ function HomeInfoSlide() {
                     </SwiperSlide>
                 ))}
             </Swiper>
+                
         </div>
      );
 }

@@ -1,8 +1,8 @@
-
+import ProductCard  from "../components/sales/ProductCard";
 function MujerSales() {
     return ( 
         <div>
-            2
+            <ProductCard/>  
         </div>
     );
 }

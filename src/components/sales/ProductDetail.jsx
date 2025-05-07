@@ -1,0 +1,158 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { clothesData } from '../../constants/testClothes';
+import { ChevronLeft } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+
+function ProductDetail() {
+  const { id } = useParams();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [id]);
+  const product = clothesData.find(p => p.id === Number(id)) || clothesData[0];
+  const images = [product.image, clothesData[1].image, clothesData[2].image];
+
+  const sizeTable = [
+    { size: 'XS', pecho: 84, cintura: 66, cadera: 90 },
+    { size: 'S', pecho: 88, cintura: 70, cadera: 94 },
+    { size: 'M', pecho: 92, cintura: 74, cadera: 98 },
+    { size: 'L', pecho: 96, cintura: 78, cadera: 102 },
+    { size: 'XL', pecho: 100, cintura: 82, cadera: 106 },
+  ];
+
+  const [selectedImage, setSelectedImage] = useState(images[0]);
+  const [selectedSize, setSelectedSize] = useState('M');
+  const [showModal, setShowModal] = useState(false);
+  const [showSizes, setShowSizes] = useState(false);
+  const sizes = ['XS', 'S', 'M', 'L', 'XL'];
+
+  return (
+    <div className="w-full bg-gray-50 flex items-start justify-center mb-10 pt-10">
+      <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 pt-20 pb-[50px] px-4">
+        <div className="flex flex-row lg:flex-col gap-4 items-center justify-center lg:justify-start">
+          {images.map((img, idx) => (
+            <button
+              key={img}
+              onClick={() => setSelectedImage(img)}
+              className={`border-2 rounded-lg overflow-hidden w-16 h-16 flex items-center justify-center transition-all duration-200 ${selectedImage === img ? 'border-black' : 'border-gray-200'}`}
+              aria-label={`Vista previa ${idx + 1}`}
+            >
+              <img src={img} alt={`Vista previa ${idx + 1}`} className="object-cover w-full h-full" />
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-md aspect-[4/5] bg-gray-100 overflow-hidden flex items-center justify-center shadow-md">
+            <img src={selectedImage} alt={product.title} className="object-cover w-full h-full" />
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col gap-8 justify-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
+            <p className="text-2xl font-bold text-black mb-6">S/. {product.price}</p>
+            <hr className="my-8 border-gray-300" />
+            <div>
+              <p className="text-lg text-gray-700 mb-4">{product.description}</p>
+            </div>
+            <div className="flex flex-col gap-6 mt-6">
+              {!showSizes && (
+                <motion.button
+                  layout
+                  className="px-6 py-3 bg-gray-100 text-black rounded-full font-semibold text-base shadow hover:bg-gray-200 transition w-fit mx-auto"
+                  onClick={() => setShowSizes(true)}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  Ver tallas
+                </motion.button>
+              )}
+              <AnimatePresence>
+                {showSizes && (
+                  <motion.div
+                    layout
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3 flex-wrap mb-2 mt-2">
+                      {sizes.map((size, idx) => (
+                        <React.Fragment key={size}>
+                          <button
+                            onClick={() => setSelectedSize(size)}
+                            className={`w-12 h-12 rounded-lg text-lg font-bold transition-colors duration-200
+                              ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-100 text-black hover:bg-gray-200'}`}
+                          >
+                            {size}
+                          </button>
+                          {idx === sizes.length - 1 && (
+                            <motion.button
+                              className="ml-4 px-2 py-2 bg-transparent text-black rounded-full border-none hover:bg-gray-200 transition flex items-center"
+                              onClick={() => setShowSizes(false)}
+                              whileTap={{ scale: 0.95 }}
+                              aria-label="Contraer tallas"
+                            >
+                              <ChevronLeft className="w-6 h-6" />
+                            </motion.button>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="text-black text-sm underline hover:text-emerald-700 transition bg-transparent border-none p-0 mt-1"
+                      onClick={() => setShowModal(true)}
+                    >
+                      Tabla de medidas
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <button className="px-8 py-4 bg-black text-white rounded-full font-semibold text-lg shadow-lg hover:bg-gray-900 transition-colors duration-200">
+                Añadir al carrito
+              </button>
+            </div>
+            {showModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative animate-fade-in">
+                  <button
+                    className="absolute top-3 right-3 text-gray-400 hover:text-black text-2xl font-bold"
+                    onClick={() => setShowModal(false)}
+                    aria-label="Cerrar"
+                  >
+                    ×
+                  </button>
+                  <h2 className="text-xl font-bold mb-4 text-center">Tabla de medidas (cm)</h2>
+                  <table className="w-full text-sm text-center border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-2 font-semibold">Talla</th>
+                        <th className="py-2 font-semibold">Pecho</th>
+                        <th className="py-2 font-semibold">Cintura</th>
+                        <th className="py-2 font-semibold">Cadera</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sizeTable.map((row) => (
+                        <tr key={row.size} className="border-b last:border-0">
+                          <td className="py-2 font-bold">{row.size}</td>
+                          <td className="py-2">{row.pecho}cm</td>
+                          <td className="py-2">{row.cintura}cm</td>
+                          <td className="py-2">{row.cadera}cm</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ProductDetail; 

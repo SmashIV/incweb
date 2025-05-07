@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 function Header() {
     return (
-        <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-md">
+        <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm">
             <Link to='/'>
                 <img src={logo} alt="Incalpaca Logo" className='h-12'/>
             </Link>
@@ -42,9 +42,9 @@ function Header() {
                 <div className='cursor-pointer hover:text-gray-500'>
                     <LocateFixed/>
                 </div>
-                <div className='cursor-pointer hover:text-gray-500'>
-                    <CircleUser/>
-                </div>
+                <Link to="Login" className="cursor-pointer hover:text-gray-500"> 
+                    <CircleUser/> 
+                </Link>
                 <div className='cursor-pointer hover:text-gray-500'>
                     <ShoppingBasket/>
                 </div>

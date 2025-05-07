@@ -1,8 +1,8 @@
-
+import ProductCard  from "../components/sales/ProductCard";
 function AccesoriosSales() {
     return (  
         <div >
-            3
+            <ProductCard/>
         </div>
     );
 }
