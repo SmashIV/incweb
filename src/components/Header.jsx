@@ -1,10 +1,13 @@
 import logo from '../assets/INCALPACA.webp';
 import { ShoppingBasket, CircleUser, LocateFixed, Search} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import CartSidebar from './sales/CartSideBar';
 
 function Header() {
+    const [cartOpen, setCartOpen] = useState(false);
     return (
-        <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm">
+        <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm relative">
             <Link to='/'>
                 <img src={logo} alt="Incalpaca Logo" className='h-12'/>
             </Link>
@@ -45,10 +48,11 @@ function Header() {
                 <Link to="Login" className="cursor-pointer hover:text-gray-500"> 
                     <CircleUser/> 
                 </Link>
-                <div className='cursor-pointer hover:text-gray-500'>
+                <div className='cursor-pointer hover:text-gray-500' onClick={() => setCartOpen(true)}>
                     <ShoppingBasket/>
                 </div>
             </div>
+            <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
         </div>
     )
 }
