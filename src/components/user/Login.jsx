@@ -97,7 +97,8 @@ function Login() {
                             <div className="space-y-4">
                                 <div>
                                     <input 
-                                    type="password"                                             
+                                    type="password"
+                                    autoComplete="off"                                             
                                     placeholder="Contrasena"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -107,7 +108,8 @@ function Login() {
                                 </div>
                                 <div>
                                     <input 
-                                    type="password"                                             
+                                    type="password"
+                                    autoComplete="off"                                             
                                     placeholder="Confirmar Contrasena"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -116,6 +118,13 @@ function Login() {
                                     />
                                 </div>
                             </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-black text-white py-3 rounded-xl hover:bg-gray-800 hover:cursor-pointer transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? "Cargando ..." : "Registrarse"}
+                            </button>
                         </form>
                     ) : showCaptcha ? (
 
@@ -199,6 +208,7 @@ function Login() {
                                         <div>
                                             <input 
                                                 type="password" 
+                                                autoComplete="off"
                                                 placeholder="Contraseña"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
@@ -229,7 +239,7 @@ function Login() {
                     )}
                     <Link 
                         to="/" 
-                        className="inline-block text-sm text-gray-500 hover:text-black transition-colors"
+                        className="inline-block text-sm text-gray-500 hover:text-black transition-colors mt-4"
                     >
                         ← Volver a la tienda
                     </Link>
