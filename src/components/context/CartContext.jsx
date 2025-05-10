@@ -72,7 +72,7 @@ const cartReducer = (state, action) => {
       
       const updatedItems = state.items.map(item => {
         if (item.id === id && item.size === size) {
-          const quantityDiff = quantity - item.quantity;
+          //const quantityDiff = quantity - item.quantity;
           return { ...item, quantity };
         }
         return item;

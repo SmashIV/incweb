@@ -171,7 +171,7 @@ export default function CartSideBar({ open, onClose }) {
                   exit={{ opacity: 0, y: 20 }}
                   className="flex flex-col items-center justify-center h-full text-gray-500 text-lg font-semibold"
                 >
-                  Your cart is empty
+                  Carrito vacio.
                 </motion.div>
               ) : (
                 items.map((item) => (

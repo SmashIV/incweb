@@ -1,14 +1,26 @@
 import logo from '../assets/INCALPACA.webp';
-import { ShoppingBasket, CircleUser, LocateFixed, Search} from 'lucide-react';
+import { ShoppingBasket, CircleUser, LocateFixed, Search, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import CartSidebar from './sales/CartSideBar';
 import { useCart } from './context/CartContext';
+import { useAuth } from './context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function Header() {
     const [cartOpen, setCartOpen] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
     const { totalItems } = useCart();
+    const { user, logout } = useAuth();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            setUserMenuOpen(false);
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+        }
+    };
 
     return (
         <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm relative">
@@ -42,16 +54,50 @@ function Header() {
                     </Link>
                 </li>
             </ul>
-            <div className='flex space-x-4'>
+            <div className='flex space-x-4 items-center'>
                 <div className='cursor-pointer hover:text-gray-500'>
                     <Search/>
                 </div>
                 <div className='cursor-pointer hover:text-gray-500'>
                     <LocateFixed/>
                 </div>
-                <Link to="Login" className="cursor-pointer hover:text-gray-500"> 
-                    <CircleUser/> 
-                </Link>
+                <div className="relative">
+                    {user ? (
+                        <div className="relative">
+                            <button 
+                                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                className="flex items-center space-x-2 cursor-pointer hover:text-gray-500"
+                            >
+                                <CircleUser className="w-6 h-6" />
+                                <span className="text-sm font-medium hidden md:block">
+                                    {user.email.split('@')[0]}
+                                </span>
+                            </button>
+                            <AnimatePresence>
+                                {userMenuOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50"
+                                    >
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span>Cerrar sesión</span>
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    ) : (
+                        <Link to="/login" className="cursor-pointer hover:text-gray-500">
+                            <CircleUser className="w-6 h-6" />
+                        </Link>
+                    )}
+                </div>
                 <div className='cursor-pointer hover:text-gray-500 relative' onClick={() => setCartOpen(true)}>
                     <ShoppingBasket/>
                     <AnimatePresence>
@@ -79,7 +125,7 @@ function Header() {
             </div>
             <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />
         </div>
-    )
+    );
 }
 
 export default Header;

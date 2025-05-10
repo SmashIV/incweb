@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import Header from './components/Header'
-import {Routes, Route} from 'react-router-dom'
+import {Routes, Route, useLocation} from 'react-router-dom'
 import  Home  from './pages/Home'
 import  AccesoriosSales  from './pages/AccesoriosSales'
 import  HombreSales  from './pages/HombreSales'
@@ -14,12 +14,14 @@ import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
 
 function App() {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
 
   return (
     <Providers>
       <div className='flex flex-col min-h-screen bg-white'>
-        <Header/>
-        <div id='main-content'>
+        {!isLoginPage && <Header/>}
+        <div id='main-content' className={isLoginPage ? '' : 'flex-grow'}>
           <Routes>
             <Route path='/' element={<Home/>}/>
             <Route path='/hombre-sales' element={<HombreSales/>}/>
@@ -31,7 +33,7 @@ function App() {
             <Route path='/login' element={<Login/>}/>
           </Routes>
         </div>
-        <Footer/>
+        {!isLoginPage && <Footer/>}
       </div>
     </Providers>
   )
