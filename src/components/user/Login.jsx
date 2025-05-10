@@ -94,7 +94,28 @@ function Login() {
                 <div className="w-full">
                     {showPasswordForm ? (
                         <form onSubmit={handlePasswordSubmit} className="space-y-6 w-full animate-fade-in">
-
+                            <div className="space-y-4">
+                                <div>
+                                    <input 
+                                    type="password"                                             
+                                    placeholder="Contrasena"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <input 
+                                    type="password"                                             
+                                    placeholder="Confirmar Contrasena"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all" 
+                                    />
+                                </div>
+                            </div>
                         </form>
                     ) : showCaptcha ? (
 
