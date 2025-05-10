@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clothesData } from '../../constants/testClothes';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ShoppingCart } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 function ProductDetail() {
   const { id } = useParams();
+  const { addToCart } = useCart();
+  const [showAddedToCart, setShowAddedToCart] = useState(false);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
+
   const product = clothesData.find(p => p.id === Number(id)) || clothesData[0];
   const images = [product.image, clothesData[1].image, clothesData[2].image];
 
@@ -24,7 +29,19 @@ function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState('M');
   const [showModal, setShowModal] = useState(false);
   const [showSizes, setShowSizes] = useState(true);
+  const [showSizeError, setShowSizeError] = useState(false);
   const sizes = ['XS', 'S', 'M', 'L', 'XL'];
+
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      setShowSizeError(true);
+      setTimeout(() => setShowSizeError(false), 3000);
+      return;
+    }
+    addToCart(product, 1, selectedSize);
+    setShowAddedToCart(true);
+    setTimeout(() => setShowAddedToCart(false), 2000);
+  };
 
   return (
     <div className="w-full bg-gray-50 flex items-start justify-center mb-10 pt-10">
@@ -112,7 +129,10 @@ Como regla general, recomendamos no colgar este tipo de prenda.
                       {sizes.map((size, idx) => (
                         <React.Fragment key={size}>
                           <button
-                            onClick={() => setSelectedSize(size)}
+                            onClick={() => {
+                              setSelectedSize(size);
+                              setShowSizeError(false);
+                            }}
                             className={`w-12 h-12 rounded-lg text-lg font-bold transition-colors duration-200
                               ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-100 text-black hover:bg-gray-200'}`}
                           >
@@ -138,12 +158,35 @@ Como regla general, recomendamos no colgar este tipo de prenda.
                     >
                       Tabla de medidas
                     </button>
+                    {showSizeError && (
+                      <p className="text-sm text-red-500 mt-2 animate-fade-in">
+                        Por favor, selecciona una talla
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
-              <button className="px-8 py-4 bg-black text-white rounded-full font-semibold text-lg shadow-lg hover:bg-gray-900 transition-colors duration-200">
-                Añadir al carrito
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={handleAddToCart}
+                  className="w-full px-8 py-4 bg-black text-white rounded-full font-semibold text-lg shadow-lg hover:bg-gray-900 transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  Añadir al carrito
+                </button>
+                <AnimatePresence>
+                  {showAddedToCart && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full left-0 right-0 mt-2 text-center text-green-600 font-medium"
+                    >
+                      ¡Producto añadido al carrito!
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

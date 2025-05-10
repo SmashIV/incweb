@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { useCart } from '../context/CartContext';
 
 // Placeholder product data
 const mockProducts = [
@@ -30,14 +31,12 @@ const mockProducts = [
 ];
 
 function CartProductCard({ product, onDelete, onQuantityChange }) {
-  const [prevQty, setPrevQty] = useState(product.quantity);
   const [direction, setDirection] = useState(0); // 1 for up, -1 for down
 
   // Detect direction of change
   const handleChange = (newQty) => {
     setDirection(newQty > product.quantity ? 1 : -1);
-    setPrevQty(product.quantity);
-    onQuantityChange(product.id, newQty);
+    onQuantityChange(product.id, product.size, newQty);
   };
 
   const qtyVariants = {
@@ -89,8 +88,9 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
             &times;
           </button>
         </div>
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-gray-500">Size: <b className='text-gray-900'>{product.size}</b></span>
+          <span className="text-sm font-semibold text-gray-900">S/.{product.price}</span>
         </div>
         <div className="flex items-center gap-3 mt-4">
           <span className="text-xs text-gray-500">Qty:</span>
@@ -136,19 +136,7 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
 }
 
 export default function CartSideBar({ open, onClose }) {
-  const [products, setProducts] = useState(mockProducts);
-
-  const handleDelete = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const handleQuantityChange = (id, newQty) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id && newQty > 0 ? { ...p, quantity: newQty } : p
-      )
-    );
-  };
+  const { items, totalAmount, removeFromCart, updateQuantity } = useCart();
 
   return (
     <AnimatePresence>
@@ -160,18 +148,22 @@ export default function CartSideBar({ open, onClose }) {
           transition={{ type: 'spring', stiffness: 400, damping: 40 }}
           className="fixed top-0 right-0 h-full w-[420px] max-w-full bg-white shadow-2xl z-50 flex flex-col p-6 border-l border-gray-200"
         >
-          <motion.button
-            className="self-end mb-4 text-2xl text-gray-500 hover:text-black transition"
-            onClick={onClose}
-            aria-label="Cerrar carrito"
-            whileHover={{ rotate: 360, scale: 1.2 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-          >
-            &times;
-          </motion.button>
-          <div className="flex-1 w-full overflow-y-auto pt-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Shopping Cart</h2>
+            <motion.button
+              className="text-2xl text-gray-500 hover:text-black transition"
+              onClick={onClose}
+              aria-label="Cerrar carrito"
+              whileHover={{ rotate: 360, scale: 1.2 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            >
+              &times;
+            </motion.button>
+          </div>
+          
+          <div className="flex-1 w-full overflow-y-auto">
             <AnimatePresence initial={false}>
-              {products.length === 0 ? (
+              {items.length === 0 ? (
                 <motion.div
                   key="empty"
                   initial={{ opacity: 0, y: 20 }}
@@ -182,17 +174,32 @@ export default function CartSideBar({ open, onClose }) {
                   Your cart is empty
                 </motion.div>
               ) : (
-                products.map((product) => (
+                items.map((item) => (
                   <CartProductCard
-                    key={product.id}
-                    product={product}
-                    onDelete={() => handleDelete(product.id)}
-                    onQuantityChange={handleQuantityChange}
+                    key={`${item.id}-${item.size}`}
+                    product={item}
+                    onDelete={() => removeFromCart(item.id, item.size)}
+                    onQuantityChange={updateQuantity}
                   />
                 ))
               )}
             </AnimatePresence>
           </div>
+
+          {items.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-base font-medium text-gray-900">Subtotal</span>
+                <span className="text-lg font-semibold text-gray-900">S/.{totalAmount.toFixed(2)}</span>
+              </div>
+              <button
+                className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-900 transition-colors"
+                onClick={() => {/* TODO: Implement checkout */}}
+              >
+                Proceed to Checkout
+              </button>
+            </div>
+          )}
         </motion.aside>
       )}
     </AnimatePresence>

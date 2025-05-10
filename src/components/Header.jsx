@@ -3,9 +3,13 @@ import { ShoppingBasket, CircleUser, LocateFixed, Search} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import CartSidebar from './sales/CartSideBar';
+import { useCart } from './context/CartContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function Header() {
     const [cartOpen, setCartOpen] = useState(false);
+    const { totalItems } = useCart();
+
     return (
         <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm relative">
             <Link to='/'>
@@ -48,8 +52,29 @@ function Header() {
                 <Link to="Login" className="cursor-pointer hover:text-gray-500"> 
                     <CircleUser/> 
                 </Link>
-                <div className='cursor-pointer hover:text-gray-500' onClick={() => setCartOpen(true)}>
+                <div className='cursor-pointer hover:text-gray-500 relative' onClick={() => setCartOpen(true)}>
                     <ShoppingBasket/>
+                    <AnimatePresence>
+                        {totalItems > 0 && (
+                            <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                                key="cart-count"
+                            >
+                                <motion.span
+                                    key={totalItems}
+                                    initial={{ scale: 0.5, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.5, opacity: 0 }}
+                                    className="flex items-center justify-center w-full h-full"
+                                >
+                                    {totalItems}
+                                </motion.span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
             <CartSidebar open={cartOpen} onClose={() => setCartOpen(false)} />

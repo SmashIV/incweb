@@ -1,18 +1,32 @@
 import {useState, useEffect} from 'react';
 import {motion} from 'framer-motion';
 import { useModal } from '../context/ModalContext';
+import { useCart } from '../context/CartContext';
+import { ShoppingCart } from 'lucide-react';
 
 export default function ProductModal({ item, onClose }) {
     const { setModalOpen } = useModal();
+    const { addToCart } = useCart();
+    const [selectedSize, setSelectedSize] = useState('M');
+    const [showSizeError, setShowSizeError] = useState(false);
+    const sizes = ['XS', 'S', 'M', 'L', 'XL'];
 
     useEffect(() => {
       setModalOpen(true);
       return () => setModalOpen(false);
     }, [setModalOpen]);
 
-    const sizes = ['XS', 'S', 'M', 'L', 'XL'];
-    const [selectedSize, setSelectedSize] = useState('M');
-        // wavy animation for the product's title :D
+    const handleAddToCart = () => {
+        if (!selectedSize) {
+            setShowSizeError(true);
+            setTimeout(() => setShowSizeError(false), 3000);
+            return;
+        }
+        addToCart(item, 1, selectedSize);
+        onClose();
+    };
+
+    // wavy animation for the product's title :D
     function WaveText({ text }) {
         return (
             <h2 className="text-3xl font-bold flex flex-wrap gap-1">
@@ -20,7 +34,7 @@ export default function ProductModal({ item, onClose }) {
                     <motion.span
                         key={i}
                         initial={{ color: '#f2f5f3' }} // gray color
-                        animate={{ color: '#000' }} // black colo
+                        animate={{ color: '#000' }} // black color
                         transition={{
                             delay: i * 0.04,
                             duration: 0.1,
@@ -74,19 +88,31 @@ export default function ProductModal({ item, onClose }) {
                                 {sizes.map((size) => (
                                     <button
                                         key={size}
-                                        onClick={() => setSelectedSize(size)}
+                                        onClick={() => {
+                                            setSelectedSize(size);
+                                            setShowSizeError(false);
+                                        }}
                                         className={`w-12 h-12 rounded-lg border-2 ${selectedSize === size ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'} transition-colors`}
                                     >
                                         {size}
                                     </button>
                                 ))}
                             </div>
+                            {showSizeError && (
+                                <p className="text-sm text-red-500 animate-fade-in">
+                                    Por favor, selecciona una talla
+                                </p>
+                            )}
                         </div>
                         <div className='space-y-3'>
                             <h3 className='text-xl font-semibold'>Descripcion</h3>
                             <p className='text-gray-600 text-lg'>{item.description}</p>
                         </div>
-                        <button className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-colors text-lg">
+                        <button 
+                            onClick={handleAddToCart}
+                            className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-colors text-lg flex items-center justify-center gap-2"
+                        >
+                            <ShoppingCart className="w-5 h-5" />
                             Añadir al Carrito
                         </button>
                     </div>
