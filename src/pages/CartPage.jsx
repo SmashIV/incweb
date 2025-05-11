@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import { useCart } from "../components/context/CartContext";
 import {Link, useNavigate} from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion";
@@ -13,6 +13,8 @@ function CartPage() {
     const [discount, setDiscount] = useState({});
     const [showCheckout, setShowCheckout] = useState(false);
     const [showNowPayments, setShowNowPayments] = useState(false);
+    const [showCardBrick, setShowCardBrick] = useState(false);
+    const paymentBrickRef = useRef(null);
 
     const handleApplyPromotion = () => {
         if (promotionCode.trim() === "Prueba") {
@@ -45,8 +47,52 @@ function CartPage() {
         return sum + price * item.quantity; 
     }, 0);
     const shipping = subtotal === 0 ? 0 : 2;
-    const total = subtotal + shipping;
+    const total = subtotal + shipping
 
+    useEffect(() => {
+        if (showCardBrick && window.MercadoPago) {
+            if (paymentBrickRef.current) {
+                paymentBrickRef.current.innerHTML = "";
+            }
+            const mp = new window.MercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY, {
+                locale: 'es-PE'
+            });
+            mp.bricks().create("cardPayment", "paymentBrick_container", {
+                initialization: {
+                    amount: total,
+                },
+                customization: {
+                    paymentMethods: {
+                        ticket: "all",
+                        bankTransfer: "all"
+                    }
+                },
+                callbacks: {
+                    onReady: () => {
+                        // El Brick está listo
+                    },
+                    onSubmit: (cardFormData) => {
+                        fetch("/api/process_payment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(cardFormData)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            alert("Pago procesado: " + data.status);
+                        })
+                        .catch(err => {
+                            alert("Error en el pago: " + err.message);
+                        });
+                    },
+                    onError: (error) => {
+                        alert("Error en el pago: " + error.message);
+                    }
+                }
+            });
+        }
+    }, [showCardBrick, total]);
+;
     // NOWPayments Payment Link (fijo)
     const nowPaymentsLink = "https://nowpayments.io/payment/?iid=4369578198&paymentId=5172100595"; 
 
@@ -197,18 +243,48 @@ function CartPage() {
                         className="w-full max-w-sm bg-white roundex-xl shadow-xl p-6 flex flex-col gap-6 items-center justify-center"
                     >
                         <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">Selecciona un método de pago</h2>
-                        <button
-                            className="flex  h-14 w-full items-center justify-between bg-[#7a4df6] hover:bg-[#6a3ed6] text-white rounded-xl font-semibold text-lg shadow transition my-2 mx-auto text-center"
-                            onClick={() => setShowNowPayments(!showNowPayments)}
-                        >
-                            <span className="flex items-center">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M13.5 2L6 14H12L10.5 22L18 10H12L13.5 2Z" fill="#fff"/>
-                                </svg>
-                            </span>
-                            <span className="flex-1 text-center">Paga con Cripto :D</span>
-                            <span className="w-[28px]" />
-                        </button>
+                        <div className="flex flex-col w-full gap-2">
+                            <button
+                                className="flex h-14 w-full items-center justify-between bg-[#009ee3] hover:bg-[#007bb6] text-white rounded-xl font-semibold text-lg shadow transition mx-auto text-center px-4"
+                                onClick={() => setShowCardBrick(true)}
+                            >
+                                <span className="flex items-center">
+                                    <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                        <ellipse cx="24" cy="24" rx="24" ry="24" fill="#fff"/>
+                                        <ellipse cx="24" cy="24" rx="20" ry="12" fill="#009ee3"/>
+                                        <path d="M16.5 24c1.5-2 4.5-2 6 0 1.5-2 4.5-2 6 0" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                </span>
+                                <span className="flex-1 text-center">Pagar con Tarjeta (MercadoPago)</span>
+                                <span className="w-[32px]" />
+                            </button>
+                            {showCardBrick && (
+                                <>
+                                    <button
+                                        className="w-full mb-2 bg-gray-200 text-gray-700 py-2 rounded-xl font-semibold text-sm hover:bg-gray-300 transition"
+                                        onClick={() => {
+                                            setShowCardBrick(false);
+                                            if (paymentBrickRef.current) paymentBrickRef.current.innerHTML = "";
+                                        }}
+                                    >
+                                        ← Volver a métodos de pago
+                                    </button>
+                                    <div ref={paymentBrickRef} id="paymentBrick_container" className="w-full my-2" />
+                                </>
+                            )}
+                            <button
+                                className="flex h-14 w-full items-center justify-between bg-[#7a4df6] hover:bg-[#6a3ed6] text-white rounded-xl font-semibold text-lg shadow transition mx-auto text-center px-4"
+                                onClick={() => setShowNowPayments(!showNowPayments)}
+                            >
+                                <span className="flex items-center">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.5 2L6 14H12L10.5 22L18 10H12L13.5 2Z" fill="#fff"/>
+                                    </svg>
+                                </span>
+                                <span className="flex-1 text-center">Paga con Cripto :D</span>
+                                <span className="w-[28px]" />
+                            </button>
+                        </div>
                         <AnimatePresence>
                             {showNowPayments && (
                                 <motion.div
