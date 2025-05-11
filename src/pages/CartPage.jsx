@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react"
 import { useCart } from "../components/context/CartContext";
 import {Link, useNavigate} from "react-router-dom"
+import { AnimatePresence, motion } from "framer-motion";
 
 function CartPage() {
     const { items, totalAmount, updateQuantity, removeFromCart} = useCart();
@@ -10,6 +11,8 @@ function CartPage() {
     const [promotionMessage, setPromotionMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [discount, setDiscount] = useState({});
+    const [showCheckout, setShowCheckout] = useState(false);
+    const [showNowPayments, setShowNowPayments] = useState(false);
 
     const handleApplyPromotion = () => {
         if (promotionCode.trim() === "Prueba") {
@@ -44,14 +47,16 @@ function CartPage() {
     const shipping = subtotal === 0 ? 0 : 2;
     const total = subtotal + shipping;
 
+    // NOWPayments Payment Link (fijo)
+    const nowPaymentsLink = "https://nowpayments.io/payment/?iid=4369578198&paymentId=5172100595"; 
+
     const handleCheckout = () => {
         if (items.length === 0) {
             setErrorMessage("El carrito esta vacio");
             return;
         }
-        navigate("/checkout");
+        setShowCheckout(true);
     }
-
 
     return (  
         <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row items-center justify-center py-8 px-2 gap-8">
@@ -122,56 +127,125 @@ function CartPage() {
                     )}
                 </div>
             </div>
-            <div className="w-full max-w-sm bg-white roundex-xl shadow-xl p-6 flex flex-col gap-6">
-                    <div className="carrito-total">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">  
-                            Total del Pedido
-                        </h2>
-                        <div>
-                            <div className="flex justify-between text-gray-700 mb-2">
-                                <p>Total de Envio</p>
-                                <p>S/.{shipping}</p>
-                            </div>
-                            <hr />
-                            <div className="flex justify-between text-lg font-bold text-gray-900 mt-2">
-                                <b>Total</b>
-                                <b>S/.{total}</b>
-                            </div>
-                        </div>
-                        {errorMessage && ( <p className="text-red-500 text-sm mt-2 text-center">{errorMessage}</p> )}
-                        <button
-                            className="w-full bg-black text-white py-3 rounded-xl font-semibold text-lg shadow hover:bg-gray-900 transition mt-4"
-                            onClick={handleCheckout}
-                        >
-                            Proceder a Comprar!
-                        </button>
-                    </div>
-                    <div className="carrito-promo bg-gray-50 rounded-2xl p-4">
-                        <p className="text-sm text-gray-700 mb-2">Tienes un codigo de descuento? Ingresa aca!</p>
-                        <div className="flex gap-2 mb-2">
-                        <input 
-                            type="text"
-                            placeholder="Codigo de Promocion"
-                            value={promotionCode}
-                            onChange={(e) => setPromotionCode(e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                        /> 
-                        <button
-                            className="bg-black text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-gray-900 transition"
-                            onClick={handleApplyPromotion}
-                        >
-                            Ingresar
-                        </button>
-                        </div>
-                        {promotionMessage && ( <p className="text-green-600 text-xs mt-1">{promotionMessage}</p> )}
-                    </div>
-                    <Link
-                        to="/"
-                        className="w-full block text-center py-3 rounded-2xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 trans"
+            <AnimatePresence mode="wait">
+                {!showCheckout && (
+                    <motion.div
+                        key="resumen"
+                        initial={{ opacity: 1, x: 0 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 100 }}
+                        transition={{ duration: 0.4 }}
+                        className="w-full max-w-sm bg-white roundex-xl shadow-xl p-6 flex flex-col gap-6"
                     >
-                        Seguir comprando
-                    </Link>
-            </div>
+                        <div className="carrito-total">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">  
+                                Total del Pedido
+                            </h2>
+                            <div>
+                                <div className="flex justify-between text-gray-700 mb-2">
+                                    <p>Total de Envio</p>
+                                    <p>S/.{shipping}</p>
+                                </div>
+                                <hr />
+                                <div className="flex justify-between text-lg font-bold text-gray-900 mt-2">
+                                    <b>Total</b>
+                                    <b>S/.{total}</b>
+                                </div>
+                            </div>
+                            {errorMessage && ( <p className="text-red-500 text-sm mt-2 text-center">{errorMessage}</p> )}
+                            <button
+                                className="w-full bg-black text-white py-3 rounded-xl font-semibold text-lg shadow hover:bg-gray-900 transition mt-4"
+                                onClick={handleCheckout}
+                            >
+                                Proceder a Comprar!
+                            </button>
+                        </div>
+                        <div className="carrito-promo bg-gray-50 rounded-2xl p-4">
+                            <p className="text-sm text-gray-700 mb-2">Tienes un codigo de descuento? Ingresa aca!</p>
+                            <div className="flex gap-2 mb-2">
+                            <input 
+                                type="text"
+                                placeholder="Codigo de Promocion"
+                                value={promotionCode}
+                                onChange={(e) => setPromotionCode(e.target.value)}
+                                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                            /> 
+                            <button
+                                className="bg-black text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-gray-900 transition"
+                                onClick={handleApplyPromotion}
+                            >
+                                Ingresar
+                            </button>
+                            </div>
+                            {promotionMessage && ( <p className="text-green-600 text-xs mt-1">{promotionMessage}</p> )}
+                        </div>
+                        <Link
+                            to="/"
+                            className="w-full block text-center py-3 rounded-2xl font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 trans"
+                        >
+                            Seguir comprando
+                        </Link>
+                    </motion.div>
+                )}
+                {showCheckout && (
+                    <motion.div
+                        key="checkout-options"
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 100 }}
+                        transition={{ duration: 0.4 }}
+                        className="w-full max-w-sm bg-white roundex-xl shadow-xl p-6 flex flex-col gap-6 items-center justify-center"
+                    >
+                        <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">Selecciona un método de pago</h2>
+                        <button
+                            className="flex  h-14 w-full items-center justify-between bg-[#7a4df6] hover:bg-[#6a3ed6] text-white rounded-xl font-semibold text-lg shadow transition my-2 mx-auto text-center"
+                            onClick={() => setShowNowPayments(!showNowPayments)}
+                        >
+                            <span className="flex items-center">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13.5 2L6 14H12L10.5 22L18 10H12L13.5 2Z" fill="#fff"/>
+                                </svg>
+                            </span>
+                            <span className="flex-1 text-center">Paga con Cripto :D</span>
+                            <span className="w-[28px]" />
+                        </button>
+                        <AnimatePresence>
+                            {showNowPayments && (
+                                <motion.div
+                                    key="nowpayments-iframe"
+                                    initial={{ opacity: 0, y: 40 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 40 }}
+                                    transition={{ duration: 0.4 }}
+                                    className="w-full flex flex-col items-center"
+                                >
+                                    <iframe
+                                        src={nowPaymentsLink}
+                                        width="420"
+                                        height="650"
+                                        frameBorder="0"
+                                        allowFullScreen
+                                        title="Pago cripto NOWPayments"
+                                        className="rounded-xl border"
+                                    />
+                                    <button
+                                        className="w-full mt-4 bg-gray-200 text-gray-700 py-2 rounded-xl font-semibold text-sm hover:bg-gray-300 transition"
+                                        onClick={() => setShowNowPayments(false)}
+                                    >
+                                        ← Usar otro metodo
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                        <button
+                            className="w-full mt-2 bg-gray-200 text-gray-700 py-2 rounded-xl font-semibold text-sm hover:bg-gray-300 transition"
+                            onClick={() => setShowCheckout(false)}
+                        >
+                            ← Volver a detalles
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
