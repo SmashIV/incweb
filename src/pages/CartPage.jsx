@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useState, useEffect} from "react"
 import { useCart } from "../components/context/CartContext";
 import {Link, useNavigate} from "react-router-dom"
 
@@ -9,20 +9,33 @@ function CartPage() {
     const [promotionCode, setPromotionCode] = useState("");
     const [promotionMessage, setPromotionMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const discount = {}; // [id]: price with disc
+    const [discount, setDiscount] = useState({});
 
     const handleApplyPromotion = () => {
         if (promotionCode.trim() === "Prueba") {
             setPromotionMessage("Codigo aplicado! 10% de desc");
-            items.forEarch(item => {
-                discount[item.id] = Math.round(item.price * 0.9);
+            const newDiscount = {};
+            items.forEach(item => {
+                newDiscount[item.id] = Math.round(item.price * 0.9);
             });
+            setDiscount(newDiscount);
         } else {
             setPromotionMessage("");
             setErrorMessage("Codigo invalido");
             setTimeout(() => setErrorMessage(""), 2000);
+            setDiscount({});
         }
     };
+
+    useEffect(() => {
+        if (promotionMessage && promotionCode.trim() === "Prueba") {
+            const newDiscount = {};
+            items.forEach(item => {
+                newDiscount[item.id] = Math.round(item.price * 0.9);
+            });
+            setDiscount(newDiscount);
+        }
+    }, [items, promotionMessage, promotionCode]);
 
     const subtotal = items.reduce((sum, item) => {
         const price = discount[item.id] || item.price;
