@@ -76,7 +76,7 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <h4 className="text-base font-semibold truncate max-w-[110px] text-gray-900">{product.title}</h4>
+            <h4 className="text-base font-semibold truncate max-w-[190px] text-gray-900">{product.title}</h4>
             <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-3 py-0.5 font-medium">{product.category}</span>
           </div>
           <button
@@ -146,7 +146,7 @@ export default function CartSideBar({ open, onClose }) {
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-          className="fixed top-0 right-0 h-full w-[420px] max-w-full bg-white shadow-2xl z-50 flex flex-col p-6 border-l border-gray-200"
+          className="fixed top-0 right-0 h-full w-[400px] max-w-full bg-white shadow-2xl z-50 flex flex-col p-6 border-l border-gray-200"
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Shopping Cart</h2>
