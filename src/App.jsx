@@ -12,6 +12,7 @@ import Footer from './components/Footer'
 import ItemDetail from './pages/ItemDetail'
 import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
+import CartPage from './pages/CartPage'
 
 function App() {
   const location = useLocation();
@@ -31,6 +32,7 @@ function App() {
             <Route path='/info-incalpaca' element={<BusinessInfo/>}/>
             <Route path='/item-detail/:id' element={<ItemDetail/>}/>
             <Route path='/login' element={<Login/>}/>
+            <Route path='/prueba' element={<CartPage/>}/>
           </Routes>
         </div>
         {!isLoginPage && <Footer/>}

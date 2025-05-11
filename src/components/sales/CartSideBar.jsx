@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 // Placeholder product data
 const mockProducts = [
@@ -138,6 +139,8 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
 export default function CartSideBar({ open, onClose }) {
   const { items, totalAmount, removeFromCart, updateQuantity } = useCart();
 
+  const navigate = useNavigate();
+
   return (
     <AnimatePresence>
       {open && (
@@ -194,7 +197,7 @@ export default function CartSideBar({ open, onClose }) {
               </div>
               <button
                 className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-900 transition-colors"
-                onClick={() => {/* TODO: Implement checkout */}}
+                onClick={() => {navigate("/prueba")}}
               >
                 Proceed to Checkout
               </button>
