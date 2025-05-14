@@ -1,26 +1,13 @@
 import React, { useState } from 'react';
 import ProductModal from './ProductModal';
-import { EyeClosed, Eye, ShoppingCart } from 'lucide-react';
+import { EyeClosed, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
 
 function ProductItem({ item }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
     const [showSizeError, setShowSizeError] = useState(false);
     const navigate = useNavigate();
-    const { addToCart } = useCart();
-
-    const handleAddToCart = (e) => {
-        e.stopPropagation();
-        if (!selectedSize) {
-            setShowSizeError(true);
-            setTimeout(() => setShowSizeError(false), 3000);
-            return;
-        }
-        addToCart(item, 1, selectedSize);
-        setSelectedSize(null);
-    };
 
     return ( 
         <div className="group relative w-full h-full flex flex-col" key={item.title}>
@@ -43,12 +30,6 @@ function ProductItem({ item }) {
                     >
                         <EyeClosed className="w-5 h-5 group-hover:hidden"/>
                         <Eye className="w-5 h-5 hidden group-hover:block"/>
-                    </button>
-                    <button 
-                        onClick={handleAddToCart}
-                        className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-                    >
-                        <ShoppingCart className="w-5 h-5" />
                     </button>
                 </div>
             </div>
