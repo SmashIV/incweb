@@ -11,7 +11,9 @@ function ProductDetail() {
   const [showAddedToCart, setShowAddedToCart] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }, 0);
   }, [id]);
 
   const product = clothesData.find(p => p.id === Number(id)) || clothesData[0];
