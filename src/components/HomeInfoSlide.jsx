@@ -11,7 +11,7 @@ import { slidesData } from '../constants/infoSlide';
 
 function HomeInfoSlide() {
     return ( 
-        <div className='flex items-center justify-center flex-col h-screen bg-white'>
+        <div className='flex items-center justify-center flex-col min-h-screen bg-white'>
             <h1 className='text-center text-black font-extrabold text-6xl mb-20'>Explora nuestras novedades.</h1>
             <Swiper
                 breakpoints={{
@@ -33,7 +33,7 @@ function HomeInfoSlide() {
                     },
                     1400: {
                         slidesPerView: 4,
-                        spaceBetween: 40,
+                        spaceBetween: 36,
                     },
                 }}
                 freeMode={true}
@@ -41,11 +41,11 @@ function HomeInfoSlide() {
                     clickable: true,
                 }}
                 modules={[FreeMode, Pagination]}
-                className='max-w-[90%] lg:max-w-[80%]'
+                className='max-w-[95vw] lg:max-w-[80vw]'
             >
                 {slidesData.map((item) => (
-                    <SwiperSlide key={item.title}>
-                        <div className="flex flex-col gap-6 group relative shadow-lg text-white rounded-2xl px-6 py-8 h-[250px] lg:h-[900px] lg:w-[450px] overflow-hidden">
+                    <SwiperSlide key={item.title} className="flex items-stretch">
+                        <div className="flex flex-col gap-6 group relative shadow-lg text-white rounded-2xl px-6 py-8 h-[250px] sm:h-[300px] lg:h-[900px] xl:h-[900px] w-full max-w-xs sm:max-w-sm lg:max-w-md overflow-hidden">
                             <div className='absolute inset-0 bg-cover bg-center' style={{backgroundImage: `url(${item.bgImage})`}}/>
                             <div className='absolute inset-0 bg-black opacity-10 group-hover:opacity-50'/>
                             <div className='relative flex flex-col gap-3'>
