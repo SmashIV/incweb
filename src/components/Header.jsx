@@ -6,10 +6,12 @@ import CartSidebar from './sales/CartSideBar';
 import { useCart } from './context/CartContext';
 import { useAuth } from './context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import SearchBar from './SearchBar';
 
 function Header() {
     const [cartOpen, setCartOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
     const { totalItems } = useCart();
     const { user, logout } = useAuth();
 
@@ -24,6 +26,7 @@ function Header() {
 
     return (
         <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm relative">
+            <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />
             <Link to='/'>
                 <img src={logo} alt="Incalpaca Logo" className='h-12'/>
             </Link>
@@ -55,7 +58,7 @@ function Header() {
                 </li>
             </ul>
             <div className='flex space-x-4 items-center'>
-                <div className='cursor-pointer hover:text-gray-500'>
+                <div className='cursor-pointer hover:text-gray-500' onClick={() => setSearchOpen(true)}>
                     <Search/>
                 </div>
                 <div className='cursor-pointer hover:text-gray-500'>
