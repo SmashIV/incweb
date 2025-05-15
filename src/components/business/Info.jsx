@@ -38,7 +38,7 @@ function Info (){
                 </>
             </article>
 
-            <article className="max-w-4xl mx-auto mt-16 px-6 text-gray-800 space-y-5">
+            <article className="max-w-4xl mx-auto mt-16 px-6 text-gray-800 space-y-4">
                 <p className="text-base leading-relaxed text-center">
                 Contamos con cinco líneas de producción: Accesorios, Línea de casa, Tejido de Punto, Confecciones y Telas. Proporcionando una amplia gama de productos y procesos a nuestros clientes.
                 </p>
