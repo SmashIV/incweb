@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import llamaGif from "../../assets/gifs/llama.gif";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { updateProfile } from "firebase/auth";
 import ReCAPTCHA from "react-google-recaptcha";
+import axios from "axios";
 
 function Login() {
     const [isLogin, setIsLogin] = useState(true);
@@ -52,7 +54,37 @@ function Login() {
             if (password != confirmPassword) {
                 throw new Error("Las contrasenas no coinciden");
             }
-            await register(email, password);
+            const user = await register(email, password);
+            await updateProfile(user ?? auth.currentUser, {
+                displayName: `${firstName} ${lastName}`
+            });
+
+            const idToken = await (user ?? auth.currentUser).getIdToken();
+            
+            try {
+                await axios.post(
+                    "http://localhost:3000/auth/register",
+                    {
+                        firebase_uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                        rol: 'usuario'
+                    },
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${idToken}`,
+                            "Content-Type": "application/json"
+                        } 
+                    }
+                );
+            } catch (error) {
+                if(error.response) {
+                    console.error(error.response.data);
+                } else {
+                    console.error(error.message)
+                }
+            }
+        
             navigate("/");
         }catch (error) {
             setError(error.message)
@@ -65,18 +97,55 @@ function Login() {
         try {
             setError("");
             setLoading(true);
-
-            await loginWithGoogle();
+    
+            const user = await loginWithGoogle();
+            const currentUser = user ?? auth.currentUser;
+            const idToken = await currentUser.getIdToken();
+    
+            let exists = false;
+            try {
+                const res = await axios.get(
+                    `http://localhost:3000/auth/exists/${currentUser.uid}`,
+                    {
+                        headers: {
+                            "Authorization": `Bearer ${idToken}`
+                        }
+                    }
+                );
+                exists = res.data.exists; // TODO: El backend debe responder { exists: true/false }
+            } catch (error) {
+                exists = false;
+            }
+            if (!exists) {
+                try {
+                    await axios.post(
+                        "http://localhost:3000/auth/register",
+                        {
+                            firebase_uid: currentUser.uid,
+                            email: currentUser.email,
+                            displayName: currentUser.displayName,
+                            rol: 'usuario'
+                        },
+                        {
+                            headers: {
+                                "Authorization": `Bearer ${idToken}`,
+                                "Content-Type": "application/json"
+                            }
+                        }
+                    );
+                } catch (error) {
+                    setError("Error registrando usuario en backend");
+                    return;
+                }
+            }
             navigate("/");
-
-        }catch(error) {
+    
+        } catch (error) {
             setError(error.message);
         } finally {
             setLoading(false);
         }
-
     };
-
     return (
         <div className="min-h-screen w-full bg-white flex flex-col items-center pt-16 px-4">
             <div className="w-full max-w-md flex flex-col items-center">
