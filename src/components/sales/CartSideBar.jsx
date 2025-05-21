@@ -3,34 +3,6 @@ import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
-// Placeholder product data
-const mockProducts = [
-  {
-    id: 1,
-    title: 'Alpaca Sweater',
-    size: 'M',
-    category: 'Hombre',
-    image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=400&q=80',
-    quantity: 1,
-  },
-  {
-    id: 2,
-    title: 'Scarf Classic',
-    size: 'L',
-    category: 'Accesorios',
-    image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=400&q=80',
-    quantity: 2,
-  },
-  {
-    id: 3,
-    title: 'Home Blanket',
-    size: 'XL',
-    category: 'Hogar',
-    image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-    quantity: 1,
-  },
-];
-
 function CartProductCard({ product, onDelete, onQuantityChange }) {
   const [direction, setDirection] = useState(0); // 1 for up, -1 for down
 

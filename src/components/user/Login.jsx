@@ -100,13 +100,14 @@ function Login() {
                 `http://localhost:3000/auth/exists/${uid}`,
                 {
                     headers: {
-                        "Authorization": `Bearer ${idToken}`
+                        "Authorization": `Bearer ${idToken}`,
+                        "Content-Type": "application/json"
                     }
                 }
             );
             return res.data.exists;
         } catch (error) {
-            // solo para debugs 
+            // solo para debugs
             /*if (error.response) {
                 console.log("sc:", error.response.status);
                 console.log("body: ", error.response.data);
@@ -115,7 +116,7 @@ function Login() {
             } else {
                 console.log("Error: ", error.message);
             }*/
-            setError("Ha fallado en el exists");
+            setError("Ha fallado en el exists"); //solo debug, despues esto se elimina
             return false;
         }
     }

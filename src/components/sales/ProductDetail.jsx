@@ -4,7 +4,7 @@ import { clothesData } from '../../constants/testClothes';
 import { ChevronLeft, ShoppingCart } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-
+import { useNotification } from '../context/NotificationContext';
 function ProductDetail() {
   const { id } = useParams();
   const { addToCart } = useCart();
@@ -15,7 +15,7 @@ function ProductDetail() {
       window.scrollTo({ top: 0, behavior: 'auto' });
     }, 0);
   }, [id]);
-
+  const { addNotification } = useNotification();
   const product = clothesData.find(p => p.id === Number(id)) || clothesData[0];
   const images = [product.image, clothesData[1].image, clothesData[2].image];
 
@@ -41,6 +41,7 @@ function ProductDetail() {
       return;
     }
     addToCart(product, 1, selectedSize);
+    addNotification("¡Producto agregado al carrito!", "success");
     setShowAddedToCart(true);
     setTimeout(() => setShowAddedToCart(false), 2000);
   };
