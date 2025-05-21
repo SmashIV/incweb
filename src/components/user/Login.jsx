@@ -33,8 +33,8 @@ function Login() {
                 navigate("/");
             } else {
                 setShowCaptcha(true);
-            } 
-        }catch (error) {
+            }
+        } catch (error) {
             setError(error.message);
         } finally {
             setLoading(false);
@@ -60,7 +60,7 @@ function Login() {
             });
 
             const idToken = await (user ?? auth.currentUser).getIdToken();
-            
+
             try {
                 await axios.post(
                     "http://localhost:3000/auth/register",
@@ -74,44 +74,97 @@ function Login() {
                         headers: {
                             "Authorization": `Bearer ${idToken}`,
                             "Content-Type": "application/json"
-                        } 
+                        }
                     }
                 );
             } catch (error) {
-                if(error.response) {
+                if (error.response) {
                     console.error(error.response.data);
                 } else {
                     console.error(error.message)
                 }
             }
-        
+
             navigate("/");
-        }catch (error) {
+        } catch (error) {
             setError(error.message)
         } finally {
             setLoading(false);
         }
     };
 
-    const handleGoogleSignIn = async () => {
+
+    let isUserExists = async (idToken, uid) => {
         try {
-            setError("");
-            setLoading(true);
-    
+            const res = await axios.get(
+                `http://localhost:3000/auth/exists/${uid}`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${idToken}`
+                    }
+                }
+            );
+            return res.data.exists;
+        } catch (error) {
+            // solo para debugs 
+            /*if (error.response) {
+                console.log("sc:", error.response.status);
+                console.log("body: ", error.response.data);
+            } else if (error.request) {
+                console.log("No hubo respuesta ", error.request);
+            } else {
+                console.log("Error: ", error.message);
+            }*/
+            setError("Ha fallado en el exists");
+            return false;
+        }
+    }
+
+    const handleGoogleSignIn = async () => {
+
+        setError("");
+        setLoading(true);
+        try {
+
             const user = await loginWithGoogle();
             const currentUser = user ?? auth.currentUser;
             const idToken = await currentUser.getIdToken();
-    
+
+            try {
+                const exists = await isUserExists(idToken, currentUser.uid);
+
+                if (exists) {
+                    navigate("/");
+                } else {
+                    setError("Usuario no registrado, registrese por favor.");
+                }
+
+            } catch (error) {
+                setError("Internal error in the login backend");
+            }
+
+        } catch (error) {
+            setError(error.message)
+
+        } finally {
+            setLoading(false);
+        }
+
+    }
+
+    const handleGoogleSignUp = async () => {
+        try {
+            setError("");
+            setLoading(true);
+
+            const user = await loginWithGoogle();
+            const currentUser = user ?? auth.currentUser;
+            const idToken = await currentUser.getIdToken();
+
             let exists = false;
             try {
-                const res = await axios.get(
-                    `http://localhost:3000/auth/exists/${currentUser.uid}`,
-                    {
-                        headers: {
-                            "Authorization": `Bearer ${idToken}`
-                        }
-                    }
-                );
+                const res = await isUserExists(idToken, currentUser.uid);
+
                 exists = res.data.exists; // TODO: El backend debe responder { exists: true/false }
             } catch (error) {
                 exists = false;
@@ -139,7 +192,6 @@ function Login() {
                 }
             }
             navigate("/");
-    
         } catch (error) {
             setError(error.message);
         } finally {
@@ -165,25 +217,25 @@ function Login() {
                         <form onSubmit={handlePasswordSubmit} className="space-y-6 w-full animate-fade-in">
                             <div className="space-y-4">
                                 <div>
-                                    <input 
-                                    type="password"
-                                    autoComplete="off"                                             
-                                    placeholder="Contrasena"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all"
+                                    <input
+                                        type="password"
+                                        autoComplete="off"
+                                        placeholder="Contrasena"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <input 
-                                    type="password"
-                                    autoComplete="off"                                             
-                                    placeholder="Confirmar Contrasena"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all" 
+                                    <input
+                                        type="password"
+                                        autoComplete="off"
+                                        placeholder="Confirmar Contrasena"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all"
                                     />
                                 </div>
                             </div>
@@ -215,15 +267,15 @@ function Login() {
                         <AnimatePresence mode="wait">
                             <motion.form
                                 key={isLogin ? "login" : "register"}
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                exit={{opacity: 0, y: -20}}
-                                transition={{duration: 0.3}}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
                                 className="space-y-6 w-full"
                                 onSubmit={handleSubmit}
                             >
                                 <div className="space-y-4">
-                                    { !isLogin && (
+                                    {!isLogin && (
                                         <div className="flex gap-2">
                                             <input
                                                 type="text"
@@ -244,8 +296,8 @@ function Login() {
                                         </div>
                                     )}
                                     <div>
-                                        <input 
-                                            type="email" 
+                                        <input
+                                            type="email"
                                             placeholder="Correo Electronico"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
@@ -253,11 +305,11 @@ function Login() {
                                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black transition-all"
                                         />
                                     </div>
-                                    
-                                    { isLogin && (
+
+                                    {isLogin && (
                                         <div>
-                                            <input 
-                                                type="password" 
+                                            <input
+                                                type="password"
                                                 autoComplete="off"
                                                 placeholder="Contraseña"
                                                 value={password}
@@ -283,17 +335,33 @@ function Login() {
                                         <span className="px-2 bg-white text-gray-500">O</span>
                                     </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={handleGoogleSignIn}
-                                    disabled={loading}
-                                    className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors font-semibold hover:cursor-pointer mt-2"
-                                >
-                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                        <path fill="#4285F4" d="M21.805 10.023h-9.82v3.955h5.627c-.243 1.3-1.47 3.82-5.627 3.82-3.38 0-6.14-2.8-6.14-6.26s2.76-6.26 6.14-6.26c1.93 0 3.23.82 3.97 1.53l2.71-2.63C17.09 2.61 14.97 1.5 12.5 1.5 6.98 1.5 2.5 5.98 2.5 11.5s4.48 10 10 10c5.77 0 9.57-4.05 9.57-9.75 0-.65-.07-1.15-.16-1.73z"/>
-                                    </svg>
-                                    Continuar con Google
-                                </button>
+                                {
+                                    isLogin ? (
+                                        <button
+                                            type="button"
+                                            onClick={handleGoogleSignIn}
+                                            disabled={loading}
+                                            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors font-semibold hover:cursor-pointer mt-2"
+                                        >
+                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M21.805 10.023h-9.82v3.955h5.627c-.243 1.3-1.47 3.82-5.627 3.82-3.38 0-6.14-2.8-6.14-6.26s2.76-6.26 6.14-6.26c1.93 0 3.23.82 3.97 1.53l2.71-2.63C17.09 2.61 14.97 1.5 12.5 1.5 6.98 1.5 2.5 5.98 2.5 11.5s4.48 10 10 10c5.77 0 9.57-4.05 9.57-9.75 0-.65-.07-1.15-.16-1.73z" />
+                                            </svg>
+                                            Iniciar sesion con Google
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={handleGoogleSignUp}
+                                            disabled={loading}
+                                            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors font-semibold hover:cursor-pointer mt-2"
+                                        >
+                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                                <path fill="#4285F4" d="M21.805 10.023h-9.82v3.955h5.627c-.243 1.3-1.47 3.82-5.627 3.82-3.38 0-6.14-2.8-6.14-6.26s2.76-6.26 6.14-6.26c1.93 0 3.23.82 3.97 1.53l2.71-2.63C17.09 2.61 14.97 1.5 12.5 1.5 6.98 1.5 2.5 5.98 2.5 11.5s4.48 10 10 10c5.77 0 9.57-4.05 9.57-9.75 0-.65-.07-1.15-.16-1.73z" />
+                                            </svg>
+                                            Registrarse con Google
+                                        </button>
+                                    )
+                                }
                                 <div className="text-center">
                                     <button
                                         type="button"
@@ -306,8 +374,8 @@ function Login() {
                             </motion.form>
                         </AnimatePresence>
                     )}
-                    <Link 
-                        to="/" 
+                    <Link
+                        to="/"
                         className="inline-block text-sm text-gray-500 hover:text-black transition-colors mt-4"
                     >
                         ← Volver a la tienda

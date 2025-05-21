@@ -73,7 +73,7 @@ function Header() {
                             >
                                 <CircleUser className="w-6 h-6" />
                                 <span className="text-sm font-medium hidden md:block">
-                                    {user.email.split('@')[0]}
+                                    {user.displayName}
                                 </span>
                             </button>
                             <AnimatePresence>
