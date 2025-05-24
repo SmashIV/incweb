@@ -119,54 +119,21 @@ function Login() {
             setError("Ha fallado en el exists"); //solo debug, despues esto se elimina
             return false;
         }
-    }
+    };
 
-    const handleGoogleSignIn = async () => {
 
+    const handleGoogleAuth = async () => {
         setError("");
         setLoading(true);
         try {
-
             const user = await loginWithGoogle();
             const currentUser = user ?? auth.currentUser;
             const idToken = await currentUser.getIdToken();
-
-            try {
-                const exists = await isUserExists(idToken, currentUser.uid);
-
-                if (exists) {
-                    navigate("/");
-                } else {
-                    setError("Usuario no registrado, registrese por favor.");
-                }
-
-            } catch (error) {
-                setError("Internal error in the login backend");
-            }
-
-        } catch (error) {
-            setError(error.message)
-
-        } finally {
-            setLoading(false);
-        }
-
-    }
-
-    const handleGoogleSignUp = async () => {
-        try {
-            setError("");
-            setLoading(true);
-
-            const user = await loginWithGoogle();
-            const currentUser = user ?? auth.currentUser;
-            const idToken = await currentUser.getIdToken();
-
+            console.log(currentUser.uid);
             let exists = false;
             try {
-                const res = await isUserExists(idToken, currentUser.uid);
-
-                exists = res.data.exists; // TODO: El backend debe responder { exists: true/false }
+                exists = await isUserExists(idToken, currentUser.uid);
+                console.log(exists);
             } catch (error) {
                 exists = false;
             }
@@ -187,9 +154,14 @@ function Login() {
                             }
                         }
                     );
-                } catch (error) {
-                    setError("Error registrando usuario en backend");
-                    return;
+                }catch (error) {
+                    if (error.response) {
+                        console.error(error.response.data);
+                    } else {
+                        console.error(error.message);
+                    }
+                    setError("Ha fallado en el exists");
+                    return false;
                 }
             }
             navigate("/");
@@ -199,6 +171,7 @@ function Login() {
             setLoading(false);
         }
     };
+
     return (
         <div className="min-h-screen w-full bg-white flex flex-col items-center pt-16 px-4">
             <div className="w-full max-w-md flex flex-col items-center">
@@ -336,33 +309,17 @@ function Login() {
                                         <span className="px-2 bg-white text-gray-500">O</span>
                                     </div>
                                 </div>
-                                {
-                                    isLogin ? (
-                                        <button
-                                            type="button"
-                                            onClick={handleGoogleSignIn}
-                                            disabled={loading}
-                                            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors font-semibold hover:cursor-pointer mt-2"
-                                        >
-                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                                <path fill="#4285F4" d="M21.805 10.023h-9.82v3.955h5.627c-.243 1.3-1.47 3.82-5.627 3.82-3.38 0-6.14-2.8-6.14-6.26s2.76-6.26 6.14-6.26c1.93 0 3.23.82 3.97 1.53l2.71-2.63C17.09 2.61 14.97 1.5 12.5 1.5 6.98 1.5 2.5 5.98 2.5 11.5s4.48 10 10 10c5.77 0 9.57-4.05 9.57-9.75 0-.65-.07-1.15-.16-1.73z" />
-                                            </svg>
-                                            Iniciar sesion con Google
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={handleGoogleSignUp}
-                                            disabled={loading}
-                                            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors font-semibold hover:cursor-pointer mt-2"
-                                        >
-                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                                <path fill="#4285F4" d="M21.805 10.023h-9.82v3.955h5.627c-.243 1.3-1.47 3.82-5.627 3.82-3.38 0-6.14-2.8-6.14-6.26s2.76-6.26 6.14-6.26c1.93 0 3.23.82 3.97 1.53l2.71-2.63C17.09 2.61 14.97 1.5 12.5 1.5 6.98 1.5 2.5 5.98 2.5 11.5s4.48 10 10 10c5.77 0 9.57-4.05 9.57-9.75 0-.65-.07-1.15-.16-1.73z" />
-                                            </svg>
-                                            Registrarse con Google
-                                        </button>
-                                    )
-                                }
+                                <button
+                                    type="button"
+                                    onClick={handleGoogleAuth}
+                                    disabled={loading}
+                                    className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors font-semibold hover:cursor-pointer mt-2"
+                                >
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                        <path fill="#4285F4" d="M21.805 10.023h-9.82v3.955h5.627c-.243 1.3-1.47 3.82-5.627 3.82-3.38 0-6.14-2.8-6.14-6.26s2.76-6.26 6.14-6.26c1.93 0 3.23.82 3.97 1.53l2.71-2.63C17.09 2.61 14.97 1.5 12.5 1.5 6.98 1.5 2.5 5.98 2.5 11.5s4.48 10 10 10c5.77 0 9.57-4.05 9.57-9.75 0-.65-.07-1.15-.16-1.73z" />
+                                    </svg>
+                                    Continuar con Google
+                                </button>
                                 <div className="text-center">
                                     <button
                                         type="button"
