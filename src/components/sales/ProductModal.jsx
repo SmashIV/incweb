@@ -74,14 +74,14 @@ export default function ProductModal({ item, onClose }) {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                     <img 
-                        src={item.image} 
-                        alt={item.title}
+                        src={item.imagen} 
+                        alt={item.nombre}
                         className="w-full h-[600px] object-cover rounded-lg"
                     />
                     <div className="space-y-6">
-                        <WaveText text={item.title} />
-                        <p className="text-gray-600 text-lg">{item.category}</p>
-                        <p className="text-4xl font-bold text-emerald-600">S/.{item.price}</p>
+                        <WaveText text={item.nombre} />
+                        <p className="text-gray-600 text-lg">{item.categoria?.nombre}</p>
+                        <p className="text-4xl font-bold text-emerald-600">S/.{item.precio_unitario}</p>
                         <div className='space-y-3'>
                             <h3 className='text-xl font-semibold'>Talla</h3>
                             <div className='flex gap-3'>
@@ -106,7 +106,7 @@ export default function ProductModal({ item, onClose }) {
                         </div>
                         <div className='space-y-3'>
                             <h3 className='text-xl font-semibold'>Descripcion</h3>
-                            <p className='text-gray-600 text-lg'>{item.description}</p>
+                            <p className='text-gray-600 text-lg'>{item.descripcion}</p>
                         </div>
                         <button 
                             onClick={handleAddToCart}

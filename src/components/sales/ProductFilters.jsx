@@ -6,11 +6,10 @@ const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
 
 export default function ProductFilters({ products, onChange }) {
 
-  const categories = Array.from(new Set(products.map(p => p.category)));
-
-  const prices = products.map(p => p.price);
-  const minPrice = Math.floor(Math.min(...prices));
-  const maxPrice = Math.ceil(Math.max(...prices));
+  const categories = Array.from(new Set(products.map(p => p.categoria?.nombre)));
+  const prices = products.map(p => Number(p.precio_unitario));
+  const minPrice = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0;
+  const maxPrice = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 0;
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
@@ -41,7 +40,7 @@ export default function ProductFilters({ products, onChange }) {
         <h3 className="text-xl font-bold mb-4 text-black">Categorías</h3>
         <div className="flex flex-col gap-3">
           {categories.map(cat => (
-            <label key={cat} className="flex items-center gap-2 cursor-pointer select-none">
+            <label key={cat || 'sin-categoria'} className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={selectedCategories.includes(cat)}
@@ -52,7 +51,7 @@ export default function ProductFilters({ products, onChange }) {
                 }}
                 className="accent-black w-5 h-5 rounded border border-black"
               />
-              <span className="text-black text-lg">{cat}</span>
+              <span className="text-black text-lg">{cat || 'Sin categoría'}</span>
             </label>
           ))}
         </div>
@@ -82,7 +81,7 @@ export default function ProductFilters({ products, onChange }) {
       <div>
         <h3 className="text-xl font-bold mb-4 text-black">Precio</h3>
         <div className="flex flex-col gap-4">
-          <div className="flex justify-between text-base text-black mb-2">
+          <div className="flex justify-between text-base text-black text-bold mb-2 font-bold">
             <span>S/.{priceRange[0]}</span>
             <span>S/.{priceRange[1]}</span>
           </div>

@@ -1,23 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { clothesData } from '../../constants/testClothes';
 import { ChevronLeft, ShoppingCart } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useNotification } from '../context/NotificationContext';
+import axios from 'axios';
+
 function ProductDetail() {
   const { id } = useParams();
   const { addToCart } = useCart();
   const [showAddedToCart, setShowAddedToCart] = useState(false);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [images, setImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedSize, setSelectedSize] = useState('M');
+  const [showModal, setShowModal] = useState(false);
+  const [showSizes, setShowSizes] = useState(true);
+  const [showSizeError, setShowSizeError] = useState(false);
+  const sizes = ['XS', 'S', 'M', 'L', 'XL'];
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'auto' });
     }, 0);
   }, [id]);
-  const { addNotification } = useNotification();
-  const product = clothesData.find(p => p.id === Number(id)) || clothesData[0];
-  const images = [product.image, clothesData[1].image, clothesData[2].image];
+
+  useEffect(() => {
+    setLoading(true);
+    axios.get(`http://localhost:3000/productos/${id}`)
+      .then(res => {
+        setProduct(res.data);
+        if (res.data) {
+          const imgs = [res.data.imagen, res.data.imagen, res.data.imagen];
+          setImages(imgs);
+          setSelectedImage(imgs[0]);
+        } else {
+          setImages([]);
+          setSelectedImage(null);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        setImages([]);
+        setSelectedImage(null);
+      });
+  }, [id]);
+
+  // Si aún está cargando o no hay producto, muestra loading (Medida temporal hasta que se implemente una anim de carga apropiada)
+  if (loading || !product) {
+    return <div className="text-center py-20">Cargando producto...</div>;
+  }
 
   const sizeTable = [
     { size: 'XS', pecho: 84, cintura: 66, cadera: 90 },
@@ -26,13 +63,6 @@ function ProductDetail() {
     { size: 'L', pecho: 96, cintura: 78, cadera: 102 },
     { size: 'XL', pecho: 100, cintura: 82, cadera: 106 },
   ];
-
-  const [selectedImage, setSelectedImage] = useState(images[0]);
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [showModal, setShowModal] = useState(false);
-  const [showSizes, setShowSizes] = useState(true);
-  const [showSizeError, setShowSizeError] = useState(false);
-  const sizes = ['XS', 'S', 'M', 'L', 'XL'];
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -52,29 +82,29 @@ function ProductDetail() {
         <div className="flex flex-row lg:flex-col gap-4 items-center justify-center lg:justify-start">
           {images.map((img, idx) => (
             <button
-              key={img}
+              key={img + idx}
               onClick={() => setSelectedImage(img)}
-              className={`border-2 rounded-lg overflow-hidden w-16 h-16 flex items-center justify-center transition-all duration-200 ${selectedImage === img ? 'border-black' : 'border-gray-200'}`}
+              className={`border-1 rounded-lg overflow-hidden w-16 h-16 flex items-center justify-center transition-all duration-200 hover:cursor-pointer ${selectedImage === img ? 'border-black' : 'border-gray-200'}`}
               aria-label={`Vista previa ${idx + 1}`}
             >
-              <img src={img} alt={`Vista previa ${idx + 1}`} className="object-cover w-full h-full" />
+              <img src={`/${img}`} alt={`Vista previa ${idx + 1}`} className="object-cover w-full h-full" />
             </button>
           ))}
         </div>
 
         <div className="flex-1 flex items-center justify-center lg:items-start lg:justify-center">
           <div className="w-full max-w-md aspect-[4/5] bg-gray-100 overflow-hidden flex items-center justify-center shadow-md">
-            <img src={selectedImage} alt={product.title} className="object-cover w-full h-full" />
+            <img src={`/${selectedImage}`} alt={product.nombre} className="object-cover w-full h-full" />
           </div>
         </div>
 
         <div className="flex-1 flex flex-col gap-8 justify-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
-            <p className="text-2xl font-bold text-black mb-6">S/. {product.price}</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.nombre}</h1>
+            <p className="text-2xl font-bold text-black mb-6">S/. {product.precio_unitario}</p>
             <hr className="my-8 border-gray-300" />
             <div>
-              <p className="text-lg text-gray-700 mb-4">{product.description}</p>
+              <p className="text-lg text-gray-700 mb-4">{product.descripcion}</p>
             </div>
             <AnimatePresence>
               {!showSizes && (

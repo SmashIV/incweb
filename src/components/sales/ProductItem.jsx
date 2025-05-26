@@ -10,14 +10,14 @@ function ProductItem({ item }) {
     const navigate = useNavigate();
 
     return ( 
-        <div className="group relative w-full h-full flex flex-col" key={item.title}>
+        <div className="group relative w-full h-full flex flex-col" key={item.id}>
             <div 
                 className="w-full aspect-[4/5] bg-gray-200 rounded-md overflow-hidden relative flex-shrink-0 cursor-pointer"
                 onClick={() => navigate(`/item-detail/${item.id}`)}
             >
                 <img 
-                    src={item.image} 
-                    alt={item.title} 
+                    src={item.imagen} 
+                    alt={item.nombre} 
                     className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-75"
                 />
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
@@ -37,11 +37,11 @@ function ProductItem({ item }) {
                 <div className="flex justify-between">
                     <div>
                         <h3 className="text-sm text-gray-700">
-                            <span className="relative z-20">{item.category}</span>
+                            <span className="relative z-20">{item.categoria?.nombre}</span>
                         </h3>
-                        <p className="mt-1 text-sm text-gray-500">{item.title}</p>
+                        <p className="mt-1 text-sm text-gray-500">{item.nombre}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">S/.{item.price}</p>
+                    <p className="text-sm font-medium text-gray-900">S/.{item.precio_unitario}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
