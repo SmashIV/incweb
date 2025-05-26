@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
+import axios from 'axios';
 
 const CartContext = createContext();
 
@@ -8,91 +9,21 @@ const initialState = {
   totalAmount: 0,
 };
 
-// Cart actions
 const CartActionTypes = {
-  ADD_TO_CART: 'ADD_TO_CART',
-  REMOVE_FROM_CART: 'REMOVE_FROM_CART',
-  UPDATE_QUANTITY: 'UPDATE_QUANTITY',
+  SET_CART: 'SET_CART',
   CLEAR_CART: 'CLEAR_CART',
 };
 
 const cartReducer = (state, action) => {
   switch (action.type) {
-    case CartActionTypes.ADD_TO_CART: {
-      const existingItemIndex = state.items.findIndex(
-        (item) => item.id === action.payload.id && item.size === action.payload.size
-      );
-
-      if (existingItemIndex > -1) {
-        // Item exists, update quantity
-        const updatedItems = state.items.map((item, index) => {
-          if (index === existingItemIndex) {
-            return {
-              ...item,
-              quantity: item.quantity + action.payload.quantity,
-            };
-          }
-          return item;
-        });
-
-        return {
-          ...state,
-          items: updatedItems,
-          totalItems: state.totalItems + action.payload.quantity,
-          totalAmount: state.totalAmount + (action.payload.price * action.payload.quantity),
-        };
-      }
-
-      // New item
-      return {
-        ...state,
-        items: [...state.items, action.payload],
-        totalItems: state.totalItems + action.payload.quantity,
-        totalAmount: state.totalAmount + (action.payload.price * action.payload.quantity),
-      };
+    case CartActionTypes.SET_CART: {
+      const items = action.payload;
+      const totalItems = items.reduce((sum, item) => sum + item.cantidad, 0);
+      const totalAmount = items.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0);
+      return { items, totalItems, totalAmount };
     }
-
-    case CartActionTypes.REMOVE_FROM_CART: {
-      const itemToRemove = state.items.find(item => 
-        item.id === action.payload.id && item.size === action.payload.size
-      );
-      
-      return {
-        ...state,
-        items: state.items.filter(item => 
-          !(item.id === action.payload.id && item.size === action.payload.size)
-        ),
-        totalItems: state.totalItems - itemToRemove.quantity,
-        totalAmount: state.totalAmount - (itemToRemove.price * itemToRemove.quantity),
-      };
-    }
-
-    case CartActionTypes.UPDATE_QUANTITY: {
-      const { id, size, quantity } = action.payload;
-      
-      const updatedItems = state.items.map(item => {
-        if (item.id === id && item.size === size) {
-          //const quantityDiff = quantity - item.quantity;
-          return { ...item, quantity };
-        }
-        return item;
-      });
-
-      const updatedState = {
-        ...state,
-        items: updatedItems,
-      };
-
-      // Recalculate totals
-      updatedState.totalItems = updatedItems.reduce((sum, item) => sum + item.quantity, 0);
-      updatedState.totalAmount = updatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-      return updatedState;
-    }
-
     case CartActionTypes.CLEAR_CART:
       return initialState;
-
     default:
       return state;
   }
@@ -101,53 +32,84 @@ const cartReducer = (state, action) => {
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  // Persist cart to localStorage
+  // Cargar el carrito del backend al iniciar sesión o recargar
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      Object.keys(CartActionTypes).forEach(actionType => {
-        if (parsedCart[actionType]) {
-          dispatch({ type: CartActionTypes[actionType], payload: parsedCart[actionType] });
-        }
-      });
-    }
+    const fetchCart = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await axios.get('http://localhost:3000/carrito', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
+      } catch (e) {
+        dispatch({ type: CartActionTypes.CLEAR_CART });
+      }
+    };
+    fetchCart();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(state));
-  }, [state]);
-
-  const addToCart = (product, quantity = 1, size) => {
-    dispatch({
-      type: CartActionTypes.ADD_TO_CART,
-      payload: {
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        image: product.image,
-        quantity,
-        size,
-        category: product.category,
+  const addToCart = async (product, quantity = 1, size) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Debes iniciar sesión para agregar productos al carrito.');
+      return;
+    }
+    await axios.post(
+      'http://localhost:3000/carrito/agregar',
+      {
+        id_producto: product.id,
+        cantidad: quantity,
+        genero: product.genero || 'unisex',
+        talla: size,
       },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    // Refresca el carrito
+    const res = await axios.get('http://localhost:3000/carrito', {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
   };
 
-  const removeFromCart = (id, size) => {
-    dispatch({
-      type: CartActionTypes.REMOVE_FROM_CART,
-      payload: { id, size },
+  // Eliminar producto del carrito
+  const removeFromCart = async (id, size) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    await axios.delete(`http://localhost:3000/carrito/eliminar`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { id_producto: id, talla: size },
     });
+    const res = await axios.get('http://localhost:3000/carrito', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
   };
 
-  const updateQuantity = (id, size, quantity) => {
-    dispatch({
-      type: CartActionTypes.UPDATE_QUANTITY,
-      payload: { id, size, quantity },
+  // Actualizar cantidad
+  const updateQuantity = async (id, size, quantity) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    await axios.put(
+      'http://localhost:3000/carrito/actualizar',
+      { id_producto: id, talla: size, cantidad: quantity },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const res = await axios.get('http://localhost:3000/carrito', {
+      headers: { Authorization: `Bearer ${token}` },
     });
+    dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
   };
 
-  const clearCart = () => {
+  // Limpiar carrito
+  const clearCart = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    await axios.delete('http://localhost:3000/carrito/limpiar', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     dispatch({ type: CartActionTypes.CLEAR_CART });
   };
 

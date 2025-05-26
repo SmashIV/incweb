@@ -8,8 +8,8 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
 
   // Detect direction of change
   const handleChange = (newQty) => {
-    setDirection(newQty > product.quantity ? 1 : -1);
-    onQuantityChange(product.id, product.size, newQty);
+    setDirection(newQty > product.cantidad ? 1 : -1);
+    onQuantityChange(product.id, product.talla, newQty);
   };
 
   const qtyVariants = {
@@ -42,15 +42,15 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
       className="flex items-center bg-white rounded-2xl shadow-[0_4px_24px_0_rgba(0,0,0,0.07)] p-5 mb-6 w-full gap-5 border border-gray-100"
     >
       <img
-        src={product.image}
-        alt={product.title}
+        src={`/${product.imagen}`}
+        alt={product.nombre}
         className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm"
       />
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <h4 className="text-base font-semibold truncate max-w-[190px] text-gray-900">{product.title}</h4>
-            <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-3 py-0.5 font-medium">{product.category}</span>
+            <h4 className="text-base font-semibold truncate max-w-[190px] text-gray-900">{product.nombre}</h4>
+            <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-3 py-0.5 font-medium">{product.categoria?.nombre}</span>
           </div>
           <button
             className="ml-2 text-red-500 text-2xl font-bold rounded-full p-0 hover:text-red-700 transition-none bg-transparent border-none outline-none"
@@ -62,15 +62,15 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
           </button>
         </div>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-gray-500">Size: <b className='text-gray-900'>{product.size}</b></span>
-          <span className="text-sm font-semibold text-gray-900">S/.{product.price}</span>
+          <span className="text-xs text-gray-500">Talla: <b className='text-gray-900'>{product.talla}</b></span>
+          <span className="text-sm font-semibold text-gray-900">S/.{product.precio_unitario}</span>
         </div>
         <div className="flex items-center gap-3 mt-4">
           <span className="text-xs text-gray-500">Qty:</span>
           <button
             className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-full bg-white text-xl font-bold text-gray-700 shadow hover:bg-gray-50 active:bg-gray-100 transition"
-            onClick={() => handleChange(product.quantity - 1)}
-            disabled={product.quantity <= 1}
+            onClick={() => handleChange(product.cantidad - 1)}
+            disabled={product.cantidad <= 1}
             aria-label="Disminuir cantidad"
             type="button"
             style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -80,7 +80,7 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
           <div className="relative w-8 h-8 flex items-center justify-center select-none">
             <AnimatePresence initial={false} custom={direction}>
               <motion.span
-                key={product.quantity}
+                key={product.cantidad}
                 custom={direction}
                 variants={qtyVariants}
                 initial="enter"
@@ -89,13 +89,13 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
                 className="absolute w-8 text-center text-lg font-semibold text-gray-900"
                 style={{ minWidth: 32 }}
               >
-                {product.quantity}
+                {product.cantidad}
               </motion.span>
             </AnimatePresence>
           </div>
           <button
             className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-full bg-white text-xl font-bold text-gray-700 shadow hover:bg-gray-50 active:bg-gray-100 transition"
-            onClick={() => handleChange(product.quantity + 1)}
+            onClick={() => handleChange(product.cantidad + 1)}
             aria-label="Aumentar cantidad"
             type="button"
             style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -151,9 +151,9 @@ export default function CartSideBar({ open, onClose }) {
               ) : (
                 items.map((item) => (
                   <CartProductCard
-                    key={`${item.id}-${item.size}`}
+                    key={`${item.id}-${item.talla}`}
                     product={item}
-                    onDelete={() => removeFromCart(item.id, item.size)}
+                    onDelete={() => removeFromCart(item.id, item.talla)}
                     onQuantityChange={updateQuantity}
                   />
                 ))

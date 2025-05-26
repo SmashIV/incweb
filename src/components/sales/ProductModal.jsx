@@ -3,27 +3,55 @@ import {motion} from 'framer-motion';
 import { useModal } from '../context/ModalContext';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart } from 'lucide-react';
+import axios from 'axios';
 
 export default function ProductModal({ item, onClose }) {
     const { setModalOpen } = useModal();
-    const { addToCart } = useCart();
+    // const { addToCart } = useCart(); // Ya no se usa localmente
     const [selectedSize, setSelectedSize] = useState('M');
     const [showSizeError, setShowSizeError] = useState(false);
+    const [loading, setLoading] = useState(false);
     const sizes = ['XS', 'S', 'M', 'L', 'XL'];
+    const [success, setSuccess] = useState(false);
 
     useEffect(() => {
       setModalOpen(true);
       return () => setModalOpen(false);
     }, [setModalOpen]);
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!selectedSize) {
             setShowSizeError(true);
             setTimeout(() => setShowSizeError(false), 3000);
             return;
         }
-        addToCart(item, 1, selectedSize);
-        onClose();
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post(
+                'http://localhost:3000/carrito/agregar',
+                {
+                    id_producto: item.id,
+                    cantidad: 1,
+                    genero: item.genero || 'unisex',
+                    talla: selectedSize,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            setSuccess(true);
+            setTimeout(() => {
+                setSuccess(false);
+                onClose();
+            }, 1200);
+        } catch (e) {
+            alert('Error al agregar al carrito. Intenta de nuevo.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // wavy animation for the product's title :D
@@ -71,7 +99,6 @@ export default function ProductModal({ item, onClose }) {
                         ✕
                     </motion.span>
                 </button>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                     <img 
                         src={item.imagen} 
@@ -93,6 +120,7 @@ export default function ProductModal({ item, onClose }) {
                                             setShowSizeError(false);
                                         }}
                                         className={`w-12 h-12 rounded-lg border-2 ${selectedSize === size ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'} transition-colors`}
+                                        disabled={loading}
                                     >
                                         {size}
                                     </button>
@@ -110,11 +138,15 @@ export default function ProductModal({ item, onClose }) {
                         </div>
                         <button 
                             onClick={handleAddToCart}
-                            className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-colors text-lg flex items-center justify-center gap-2"
+                            className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-colors text-lg flex items-center justify-center gap-2 disabled:opacity-60"
+                            disabled={loading}
                         >
                             <ShoppingCart className="w-5 h-5" />
-                            Añadir al Carrito
+                            {loading ? 'Agregando...' : 'Añadir al Carrito'}
                         </button>
+                        {success && (
+                            <div className="text-green-600 text-center font-semibold mt-2">¡Producto agregado al carrito!</div>
+                        )}
                     </div>
                 </div>
             </div>

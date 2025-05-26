@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
 import ReCAPTCHA from "react-google-recaptcha";
 import axios from "axios";
+import { auth } from "../config/firebase";
 
 function Login() {
     const [isLogin, setIsLogin] = useState(true);
@@ -30,6 +31,11 @@ function Login() {
         try {
             if (isLogin) {
                 await login(email, password);
+                const user = auth.currentUser;
+                if (user) {
+                    const idToken = await user.getIdToken();
+                    localStorage.setItem('token', idToken);
+                }
                 navigate("/");
             } else {
                 setShowCaptcha(true);
@@ -60,6 +66,7 @@ function Login() {
             });
 
             const idToken = await (user ?? auth.currentUser).getIdToken();
+            localStorage.setItem('token', idToken);
 
             try {
                 await axios.post(
@@ -129,6 +136,7 @@ function Login() {
             const user = await loginWithGoogle();
             const currentUser = user ?? auth.currentUser;
             const idToken = await currentUser.getIdToken();
+            localStorage.setItem('token', idToken);
             console.log(currentUser.uid);
             let exists = false;
             try {
