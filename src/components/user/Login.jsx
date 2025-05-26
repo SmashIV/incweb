@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "firebase/auth";
 import ReCAPTCHA from "react-google-recaptcha";
 import axios from "axios";
-import { auth } from "../config/firebase";
+import { auth } from "../../config/firebase";
 
 function Login() {
     const [isLogin, setIsLogin] = useState(true);

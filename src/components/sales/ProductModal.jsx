@@ -3,16 +3,16 @@ import {motion} from 'framer-motion';
 import { useModal } from '../context/ModalContext';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart } from 'lucide-react';
-import axios from 'axios';
 
 export default function ProductModal({ item, onClose }) {
     const { setModalOpen } = useModal();
-    // const { addToCart } = useCart(); // Ya no se usa localmente
+    const { addToCart } = useCart();
     const [selectedSize, setSelectedSize] = useState('M');
     const [showSizeError, setShowSizeError] = useState(false);
     const [loading, setLoading] = useState(false);
     const sizes = ['XS', 'S', 'M', 'L', 'XL'];
     const [success, setSuccess] = useState(false);
+    const [authError, setAuthError] = useState(false);
 
     useEffect(() => {
       setModalOpen(true);
@@ -25,30 +25,22 @@ export default function ProductModal({ item, onClose }) {
             setTimeout(() => setShowSizeError(false), 3000);
             return;
         }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setAuthError(true);
+            setTimeout(() => setAuthError(false), 3000);
+            return;
+        }
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post(
-                'http://localhost:3000/carrito/agregar',
-                {
-                    id_producto: item.id,
-                    cantidad: 1,
-                    genero: item.genero || 'unisex',
-                    talla: selectedSize,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            await addToCart(item, 1, selectedSize);
             setSuccess(true);
             setTimeout(() => {
                 setSuccess(false);
                 onClose();
             }, 1200);
         } catch (e) {
-            alert('Error al agregar al carrito. Intenta de nuevo.');
+            console.log('Error al agregar al carrito. Revisar backend.'); //for debug only
         } finally {
             setLoading(false);
         }
@@ -146,6 +138,11 @@ export default function ProductModal({ item, onClose }) {
                         </button>
                         {success && (
                             <div className="text-green-600 text-center font-semibold mt-2">¡Producto agregado al carrito!</div>
+                        )}
+                        {authError && (
+                            <div className="text-red-600 text-center font-semibold mt-2">
+                                Debes iniciar sesión para agregar productos al carrito.
+                            </div>
                         )}
                     </div>
                 </div>

@@ -74,7 +74,6 @@ export function CartProvider({ children }) {
     dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
   };
 
-  // Eliminar producto del carrito
   const removeFromCart = async (id, size) => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -88,7 +87,6 @@ export function CartProvider({ children }) {
     dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
   };
 
-  // Actualizar cantidad
   const updateQuantity = async (id, size, quantity) => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -103,7 +101,6 @@ export function CartProvider({ children }) {
     dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
   };
 
-  // Limpiar carrito
   const clearCart = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
