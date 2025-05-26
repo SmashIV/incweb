@@ -2,7 +2,7 @@ import ProductCard  from "../components/sales/ProductCard";
 function HogarSales() {
     return ( 
         <div>
-            <ProductCard/>
+            <ProductCard genero="hogar"/>
         </div>
      );
 }

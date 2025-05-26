@@ -4,7 +4,7 @@ import ProductCard  from "../components/sales/ProductCard";
 function HombreSales() {
     return (  
         <div>
-            <ProductCard/>     
+            <ProductCard genero="hombre"/>     
         </div>
     );
 }

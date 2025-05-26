@@ -79,6 +79,7 @@ CREATE TABLE `producto` (
   `stock` int(11) NOT NULL,
   `estado` enum('disponible','agotado','retirado') NOT NULL,
   `imagen` varchar(255) NOT NULL,
+  `genero` enum('hombre','mujer','unisex','accesorios','hogar') NOT NULL DEFAULT 'unisex',
   PRIMARY KEY (`id_producto`),
   FOREIGN KEY (`id_categoria`) REFERENCES `categoria`(`id_categoria`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

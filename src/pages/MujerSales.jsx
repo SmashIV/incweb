@@ -2,7 +2,7 @@ import ProductCard  from "../components/sales/ProductCard";
 function MujerSales() {
     return ( 
         <div>
-            <ProductCard/>  
+            <ProductCard genero="mujer"/>  
         </div>
     );
 }

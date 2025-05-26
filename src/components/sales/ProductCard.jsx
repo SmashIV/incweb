@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ProductFilters from "./ProductFilters";
 import axios from "axios";
 
-function ProductCard() {
+function ProductCard({ genero }) {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(true)
@@ -11,12 +11,16 @@ function ProductCard() {
     useEffect(() => {
         axios.get("http://localhost:3000/productos")
             .then(res => {
-                setProducts(res.data);
-                setFilteredProducts(res.data);
+                let prods = res.data;
+                if (genero) {
+                    prods = prods.filter(p => p.genero === genero);
+                }
+                setProducts(prods);
+                setFilteredProducts(prods);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, []);
+    }, [genero]);
 
     function handleFilterChange(filters) {
         let filtered = [...products];
@@ -40,13 +44,7 @@ function ProductCard() {
                 <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-8 text-center w-full">Productos</h2>
                 <div className="w-full max-w-full mx-auto grid grid-cols-1 gap-y-16 gap-x-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     { filteredProducts.map((item) => (
-                        <ProductItem key={item.title} item={{
-                            ...item,
-                            title: item.nombre,
-                            price: item.precio_unitario,
-                            image: item.imagen,
-                            category: item.categoria?.nombre,
-                        }} />
+                        <ProductItem key={item.id} item={item} />
                     ))}
                 </div>
             </main>
