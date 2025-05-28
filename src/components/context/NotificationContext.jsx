@@ -50,7 +50,7 @@ function Notification({ id, message, type, onClose }) {
             initial={{opacity: 0, y: 50, scale: 0.3}}
             animate={{opacity: 1, y: 0, scale: 1}}
             exit={{opacity: 0, scale: 0.5, transition: {duration: 0.2}}}
-            className={`relative px-4 py-3 rounded-lg shadow-lg text-white font-semibold ${
+            className={`relative px-4 py-3 rounded-lg shadow-lg text-white font-semibold list-none ${
                 type === "success" ? "bg-green-500" : "bg-red-500"
               }`}
         >

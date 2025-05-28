@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useNotification } from '../context/NotificationContext';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 function ProductDetail() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ function ProductDetail() {
   const sizes = ['XS', 'S', 'M', 'L', 'XL'];
 
   const { addNotification } = useNotification();
+  const { user } = useAuth();
 
   useEffect(() => {
     setTimeout(() => {
@@ -65,6 +67,10 @@ function ProductDetail() {
   ];
 
   const handleAddToCart = () => {
+    if (!user) {
+      addNotification('Debes iniciar sesión para agregar productos al carrito.', 'error');
+      return;
+    }
     if (!selectedSize) {
       setShowSizeError(true);
       setTimeout(() => setShowSizeError(false), 3000);

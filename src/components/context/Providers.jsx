@@ -14,6 +14,5 @@ export function Providers({ children }) {
                 </ModalProvider>
             </AuthProvider>
        </NotificationProvider> 
-
     );
 } 
