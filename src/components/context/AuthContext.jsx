@@ -10,15 +10,29 @@ export function AuthProvider({children}) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        //TODO: handle the auth state changes
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        // Sincroniza el idToken con localStorage en cada cambio de usuario
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setUser(user);
             setLoading(false);
-        })
-
+            if (user) {
+                try {
+                    const idToken = await user.getIdToken(true);
+                    if (idToken) {
+                        localStorage.setItem('token', idToken);
+                    } else {
+                        await signOut(auth);
+                        localStorage.removeItem('token');
+                    }
+                } catch (error) {
+                    await signOut(auth);
+                    localStorage.removeItem('token');
+                }
+            } else {
+                localStorage.removeItem('token');
+            }
+        });
         return () => unsubscribe();
-
-    }, [])
+    }, []);
 
     const login = async (email, password) => {
         try {
@@ -52,6 +66,7 @@ export function AuthProvider({children}) {
     const logout = async () => {
         try {
             await signOut(auth);
+            localStorage.removeItem('token'); // Limpia el token al cerrar sesión
         }catch (error) {    
             throw error;
         }

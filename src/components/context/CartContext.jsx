@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -31,6 +32,7 @@ const cartReducer = (state, action) => {
 
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const {user} = useAuth();
 
   const fetchCart = async () => {
     const token = localStorage.getItem('token');
@@ -50,8 +52,13 @@ export function CartProvider({ children }) {
   };
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (!user) {
+      dispatch({type: CartActionTypes.CLEAR_CART});
+    }else {
+      fetchCart();
+    }
+    
+  }, [user]);
 
   const addToCart = async (product, quantity = 1, size) => {
     const token = localStorage.getItem('token');
