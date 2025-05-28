@@ -44,7 +44,7 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
       <img
         src={`/${product.imagen}`}
         alt={product.nombre}
-        className="w-20 h-20 object-cover rounded-xl border border-gray-200 shadow-sm"
+        className="w-20 h-23 object-cover rounded-xl border border-gray-200 shadow-sm"
       />
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div className="flex items-center justify-between gap-2">
@@ -53,7 +53,7 @@ function CartProductCard({ product, onDelete, onQuantityChange }) {
             <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-3 py-0.5 font-medium">{product.categoria?.nombre}</span>
           </div>
           <button
-            className="ml-2 text-red-500 text-2xl font-bold rounded-full p-0 hover:text-red-700 transition-none bg-transparent border-none outline-none"
+            className="ml-2 text-red-500 text-2xl font-bold rounded-full p-0 hover:text-red-900 transition-none bg-transparent border-none outline-none hover:cursor-pointer"
             onClick={onDelete}
             aria-label="Eliminar producto"
             style={{ background: 'none', boxShadow: 'none' }}

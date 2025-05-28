@@ -84,7 +84,7 @@ function ProductDetail() {
             <button
               key={img + idx}
               onClick={() => setSelectedImage(img)}
-              className={`border-1 rounded-lg overflow-hidden w-16 h-16 flex items-center justify-center transition-all duration-200 hover:cursor-pointer ${selectedImage === img ? 'border-black' : 'border-gray-200'}`}
+              className={`border-1 rounded-lg overflow-hidden w-16 h-20 flex items-center justify-center transition-all duration-200 hover:cursor-pointer ${selectedImage === img ? 'border-gray-400' : 'border-gray-200'}`}
               aria-label={`Vista previa ${idx + 1}`}
             >
               <img src={`/${img}`} alt={`Vista previa ${idx + 1}`} className="object-cover w-full h-full" />
