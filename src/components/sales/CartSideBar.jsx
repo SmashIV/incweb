@@ -169,7 +169,7 @@ export default function CartSideBar({ open, onClose }) {
               </div>
               <button
                 className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-900 transition-colors"
-                onClick={() => {navigate("/prueba")}}
+                onClick={() => {navigate("/cart")}}
               >
                 Detalles de Compra
               </button>

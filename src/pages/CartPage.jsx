@@ -21,7 +21,7 @@ function CartPage() {
             setPromotionMessage("Codigo aplicado! 10% de desc");
             const newDiscount = {};
             items.forEach(item => {
-                newDiscount[item.id] = Math.round(item.price * 0.9);
+                newDiscount[`${item.id}-${item.talla}`] = Math.round(item.precio_unitario * 0.9);
             });
             setDiscount(newDiscount);
         } else {
@@ -36,15 +36,15 @@ function CartPage() {
         if (promotionMessage && promotionCode.trim() === "Prueba") {
             const newDiscount = {};
             items.forEach(item => {
-                newDiscount[item.id] = Math.round(item.price * 0.9);
+                newDiscount[`${item.id}-${item.talla}`] = Math.round(item.precio_unitario * 0.9);
             });
             setDiscount(newDiscount);
         }
     }, [items, promotionMessage, promotionCode]);
 
     const subtotal = items.reduce((sum, item) => {
-        const price = discount[item.id] || item.price;
-        return sum + price * item.quantity; 
+        const price = discount[`${item.id}-${item.talla}`] || item.precio_unitario;
+        return sum + price * item.cantidad; 
     }, 0);
     const shipping = subtotal === 0 ? 0 : 2;
     const total = subtotal + shipping
@@ -120,18 +120,18 @@ function CartPage() {
                         <div className="text-center text-gray-400 py-12 col-span6">Tu carrito esta vacio</div>
                     ) : (
                         items.map((item) => {
-                            const originalPrice = item.price;
-                            const priceWithDiscount = discount[item.id] || originalPrice;
+                            const originalPrice = item.precio_unitario;
+                            const priceWithDiscount = discount[`${item.id}-${item.talla}`] || originalPrice;
 
                             return (
-                                <div key={item.id + item.size} className="grid grid-cols-7 gap-2 items-center py-4 border-b border-gray-100 text-sm">
-                                    <img src={item.image} alt={item.title} className="w-14 h-14 rounded-xl object-cover border mx-auto" />
+                                <div key={`${item.id}-${item.talla}`} className="grid grid-cols-7 gap-2 items-center py-4 border-b border-gray-100 text-sm">
+                                    <img src={`/${item.imagen}`} alt={item.nombre} className="w-14 h-14 rounded-xl object-cover border mx-auto" />
                                     <div className="col-span-2 truncate">
-                                        <div className="font-medium text-gray-900">{item.title}</div>
-                                        <div className="text-xs text-gray-400">Talla: {item.size}</div>
+                                        <div className="font-medium text-gray-900">{item.nombre}</div>
+                                        <div className="text-xs text-gray-400">Talla: {item.talla}</div>
                                     </div>
                                     <div className="text-center">
-                                        {discount[item.id] ? (
+                                        {discount[`${item.id}-${item.talla}`] ? (
                                             <>
                                                 <span className="line-through text-gray-400 text-sx mr-1">
                                                     S/{originalPrice}
@@ -145,24 +145,24 @@ function CartPage() {
                                     <div className="flex items-center justify-center gap-2">
                                         <button
                                             className="w-7 h-7 rounded-full bg-gray-100 text-lg font-bold text-gray-600 hover:bg-gray-200"
-                                            onClick={() => updateQuantity(item.id, item.size, Math.max(1, item.quantity - 1))}
+                                            onClick={() => updateQuantity(item.id, item.talla, Math.max(1, item.cantidad - 1))}
                                             aria-label="Disminuir Cantidad"
                                         >
                                             -
                                         </button>
-                                        <span className="mx-2 text-gray-700">{item.quantity}</span>
+                                        <span className="mx-2 text-gray-700">{item.cantidad}</span>
                                         <button
                                             className="w-7 h-7 rounded-full bg-gray-100 text-lg font-bold text-gray-600 hover:bg-gray-200"
-                                            onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
+                                            onClick={() => updateQuantity(item.id, item.talla, item.cantidad + 1)}
                                             aria-label="Aumentar Cantidad"
                                         >
                                             +
                                         </button>
                                     </div>
-                                    <div className="text-center font-semibold">S/{priceWithDiscount * item.quantity}</div>
+                                    <div className="text-center font-semibold">S/{priceWithDiscount * item.cantidad}</div>
                                     <button
                                         className="text-red-400 hover:text-red-600 text-lg mx-1 hover:bg-red-200 rounded-2xl p-1"
-                                        onClick={() => removeFromCart(item.id, item.size)}
+                                        onClick={() => removeFromCart(item.id, item.talla)}
                                         aria-label="Eliminar"
                                     >
                                         ×
