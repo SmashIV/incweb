@@ -33,7 +33,7 @@ function App() {
             <Route path='/info-incalpaca' element={<BusinessInfo/>}/>
             <Route path='/item-detail/:id' element={<ItemDetail/>}/>
             <Route path='/login' element={<Login/>}/>
-            <Route path='/prueba' element={<CartPage/>}/>
+            <Route path='/cart' element={<CartPage/>}/>
             <Route path="/search" element={<SearchResults />} />
           </Routes>
         </div>

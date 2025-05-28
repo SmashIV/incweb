@@ -32,82 +32,112 @@ const cartReducer = (state, action) => {
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  // Cargar el carrito del backend al iniciar sesión o recargar
+  const fetchCart = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      dispatch({ type: CartActionTypes.CLEAR_CART });
+      return;
+    }
+    try {
+      const res = await axios.get('http://localhost:3000/carrito', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
+    } catch (e) {
+      console.error('Error al obtener el carrito:', e);
+      dispatch({ type: CartActionTypes.CLEAR_CART });
+    }
+  };
+
   useEffect(() => {
-    const fetchCart = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const res = await axios.get('http://localhost:3000/carrito', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
-      } catch (e) {
-        dispatch({ type: CartActionTypes.CLEAR_CART });
-      }
-    };
     fetchCart();
   }, []);
 
   const addToCart = async (product, quantity = 1, size) => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Debes iniciar sesión para agregar productos al carrito.');
+      //console warns para debug, despues debo quitar esto.
+      console.warn('Usuario no autenticado.');
       return;
     }
-    await axios.post(
-      'http://localhost:3000/carrito/agregar',
-      {
-        id_producto: product.id,
-        cantidad: quantity,
-        genero: product.genero || 'unisex',
-        talla: size,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
+    if (!size) {
+      console.warn('No se selecciono talla.');
+      return;
+    }
+    try {
+      await axios.post(
+        'http://localhost:3000/carrito/agregar',
+        {
+          id_producto: product.id,
+          cantidad: quantity,
+          talla: size,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      await fetchCart();
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al agregar al carrito:', e.response.data);
+      } else {
+        console.error('Error al agregar al carrito:', e.message);
       }
-    );
-    // Refresca el carrito
-    const res = await axios.get('http://localhost:3000/carrito', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
+    }
   };
 
   const removeFromCart = async (id, size) => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    await axios.delete(`http://localhost:3000/carrito/eliminar`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { id_producto: id, talla: size },
-    });
-    const res = await axios.get('http://localhost:3000/carrito', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
+    try {
+      await axios.delete(`http://localhost:3000/carrito/eliminar`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { id_producto: id, talla: size },
+      });
+      await fetchCart();
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al eliminar del carrito:', e.response.data);
+      } else {
+        console.error('Error al eliminar del carrito:', e.message);
+      }
+    }
   };
 
   const updateQuantity = async (id, size, quantity) => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    await axios.put(
-      'http://localhost:3000/carrito/actualizar',
-      { id_producto: id, talla: size, cantidad: quantity },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const res = await axios.get('http://localhost:3000/carrito', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    dispatch({ type: CartActionTypes.SET_CART, payload: res.data });
+    try {
+      await axios.put(
+        'http://localhost:3000/carrito/actualizar',
+        { id_producto: id, talla: size, cantidad: quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchCart();
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al actualizar cantidad:', e.response.data);
+      } else {
+        console.error('Error al actualizar cantidad:', e.message);
+      }
+    }
   };
 
   const clearCart = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    await axios.delete('http://localhost:3000/carrito/limpiar', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    dispatch({ type: CartActionTypes.CLEAR_CART });
+    try {
+      await axios.delete('http://localhost:3000/carrito/limpiar', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch({ type: CartActionTypes.CLEAR_CART });
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al limpiar el carrito:', e.response.data);
+      } else {
+        console.error('Error al limpiar el carrito:', e.message);
+      }
+    }
   };
 
   const value = {
@@ -118,6 +148,7 @@ export function CartProvider({ children }) {
     removeFromCart,
     updateQuantity,
     clearCart,
+    fetchCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
