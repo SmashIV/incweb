@@ -174,7 +174,7 @@ function Footer() {
                                             <a href="#" className='hover:underline'>Politica de envio</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Libro de reclamaciones</a>
+                                            <a href="/Reclamaciones" className='hover:underline'>Libro de reclamaciones</a>
                                         </li>
                                         <li className="mb-4">
                                             <a href="#" className='hover:underline'>Politica de seguridad</a>

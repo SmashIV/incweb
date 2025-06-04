@@ -14,6 +14,7 @@ import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
 import CartPage from './pages/CartPage'
 import SearchResults from './pages/SearchResults'
+import Reclamaciones from './pages/Reclamaciones'
 
 function App() {
   const location = useLocation();
@@ -35,6 +36,7 @@ function App() {
             <Route path='/login' element={<Login/>}/>
             <Route path='/cart' element={<CartPage/>}/>
             <Route path="/search" element={<SearchResults />} />
+            <Route path='/Reclamaciones' element ={<Reclamaciones/>}/>
           </Routes>
         </div>
         {!isLoginPage && <Footer/>}
