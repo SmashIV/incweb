@@ -21,7 +21,7 @@ const SearchResults = () => {
     }
     setLoading(true);
     setError(null);
-    axios.get(`http://ocalhost:3000/productos/search?q=${encodeURIComponent(searchTerm)}`)
+    axios.get(`http://localhost:3000/productos/search?q=${encodeURIComponent(searchTerm)}`)
       .then(res => {
         setProducts(res.data || []);
       })

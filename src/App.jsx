@@ -14,7 +14,7 @@ import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
 import CartPage from './pages/CartPage'
 import SearchResults from './pages/SearchResults'
-
+import DetallePedido from './pages/DetallePedido'
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
@@ -35,6 +35,7 @@ function App() {
             <Route path='/login' element={<Login/>}/>
             <Route path='/cart' element={<CartPage/>}/>
             <Route path="/search" element={<SearchResults />} />
+            <Route path='/cart/detalle-pedido' element={<DetallePedido/>} />
           </Routes>
         </div>
         {!isLoginPage && <Footer/>}
