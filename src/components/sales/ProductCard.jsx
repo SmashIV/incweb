@@ -36,7 +36,7 @@ function ProductCard({ genero }) {
     }
     
     return (
-        <div className="bg-white relative z-0 min-h-screen flex items-start">
+        <div className="bg-gray-50 relative z-0 min-h-screen flex items-start">
             <aside className="flex-shrink-0 flex items-start justify-center w-[400px] z-10 mt-20">
                 <ProductFilters products={products} onChange={handleFilterChange} />
             </aside>

@@ -101,7 +101,8 @@ function CartPage() {
             setErrorMessage("El carrito esta vacio");
             return;
         }
-        setShowCheckout(true);
+        //setShowCheckout(true);
+        navigate('detalle-pedido');
     }
 
     return (  

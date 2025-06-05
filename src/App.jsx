@@ -14,8 +14,12 @@ import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
 import CartPage from './pages/CartPage'
 import SearchResults from './pages/SearchResults'
+<<<<<<< HEAD
 import Reclamaciones from './pages/Reclamaciones'
 
+=======
+import DetallePedido from './pages/DetallePedido'
+>>>>>>> b61548c91d7be59241596686a2d27c5371a93b51
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
@@ -36,7 +40,11 @@ function App() {
             <Route path='/login' element={<Login/>}/>
             <Route path='/cart' element={<CartPage/>}/>
             <Route path="/search" element={<SearchResults />} />
+<<<<<<< HEAD
             <Route path='/Reclamaciones' element ={<Reclamaciones/>}/>
+=======
+            <Route path='/cart/detalle-pedido' element={<DetallePedido/>} />
+>>>>>>> b61548c91d7be59241596686a2d27c5371a93b51
           </Routes>
         </div>
         {!isLoginPage && <Footer/>}
