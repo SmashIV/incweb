@@ -91,16 +91,16 @@ function Footer() {
                 </span>
                 <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
                     <li>
-                        <a href="#" className="hover:underline me-4 md:me-6">Nosotros</a>
+                        <a href="/info-incalpaca" className="hover:underline me-4 md:me-6">Nosotros</a>
                     </li>
                     <li>
-                        <a href="#" className="hover:underline me-4 md:me-6">Politica de Privacidad</a>
+                        <a href="/PoliticaPrivacidad" className="hover:underline me-4 md:me-6">Politica de Privacidad</a>
                     </li>
                     <li>
-                        <a href="#" className="hover:underline me-4 md:me-6">Terminos y condiciones</a>
+                        <a href="/TerminoCondiciones" className="hover:underline me-4 md:me-6">Terminos y condiciones</a>
                     </li>
                     <li>
-                        <a href="#" className="hover:underline">Contacto</a>
+                        <a href="tel:(51-54) 60 3000" className="hover:underline">Contacto</a>
                     </li>
                 </ul>
             </div>
@@ -123,7 +123,7 @@ function Footer() {
                                             <a href="#" className='hover:underline'>Acerca</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Nosotros</a>
+                                            <a href="./info-incalpaca" className='hover:underline'>Nosotros</a>
                                         </li>
                                         <li className="mb-4">
                                             <a href="#" className='hover:underline'>Locales</a>
@@ -137,16 +137,16 @@ function Footer() {
                                     <h2 className='mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-black'>Centro de Ayuda</h2>
                                     <ul className='text-gray-500 dark:text-gray-400 font-medium'>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Email</a>
+                                            <a href="mailto:sales@incalpaca.com" className='hover:underline'>Email</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Facebook</a>
+                                            <a href="https://www.facebook.com/incalpacaofficial" target="_blank" rel="noopener noreferrer" className='hover:underline'>Facebook</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Instagram</a>
+                                            <a href="https://www.instagram.com/incalpacaofficial/" target="_blank" rel="noopener noreferrer"  className='hover:underline'>Instagram</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Mas contacto</a>
+                                            <a href="tel:(51-54) 60 3000" className='hover:underline'>Mas contacto</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -154,13 +154,13 @@ function Footer() {
                                     <h2 className='mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-black'>Legal</h2>
                                     <ul className='text-gray-500 dark:text-gray-400 font-medium'>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Politica de Privacidad</a>
+                                            <a href="/PoliticaPrivacidad" className='hover:underline'>Politica de Privacidad</a>
                                         </li>
                                         <li className="mb-4">
                                             <a href="#" className='hover:underline'>Licencia</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Terminos y condiciones</a>
+                                            <a href="/TerminoCondiciones" className='hover:underline'>Terminos y condiciones</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -168,16 +168,16 @@ function Footer() {
                                     <h2 className='mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-black'>Servicio al cliente</h2>
                                     <ul className='text-gray-500 dark:text-gray-400 font-medium'>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Legales</a>
+                                            <a href="/Legal" className='hover:underline'>Legales</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Politica de envio</a>
+                                            <a href="/PoliticaEnvio" className='hover:underline'>Politica de envio</a>
                                         </li>
                                         <li className="mb-4">
                                             <a href="/Reclamaciones" className='hover:underline'>Libro de reclamaciones</a>
                                         </li>
                                         <li className="mb-4">
-                                            <a href="#" className='hover:underline'>Politica de seguridad</a>
+                                            <a href="/PoliticaSeguridad" className='hover:underline'>Politica de seguridad</a>
                                         </li>
                                     </ul>
                                 </div>

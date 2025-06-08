@@ -14,12 +14,15 @@ import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
 import CartPage from './pages/CartPage'
 import SearchResults from './pages/SearchResults'
-<<<<<<< HEAD
-import Reclamaciones from './pages/Reclamaciones'
 
-=======
+import Reclamaciones from './pages/Reclamaciones'
 import DetallePedido from './pages/DetallePedido'
->>>>>>> b61548c91d7be59241596686a2d27c5371a93b51
+import PoliticaSeguridad from './pages/PoliticaSeguridad'
+import PoliticaEnvio from './pages/PoliticaEnvio'
+import Legal from './pages/Legal'
+import TerminoCondiciones from './pages/TerminoCondiciones'
+import PoliticaPrivacidad from './pages/PoliticaPrivacidad'
+
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
@@ -40,11 +43,13 @@ function App() {
             <Route path='/login' element={<Login/>}/>
             <Route path='/cart' element={<CartPage/>}/>
             <Route path="/search" element={<SearchResults />} />
-<<<<<<< HEAD
             <Route path='/Reclamaciones' element ={<Reclamaciones/>}/>
-=======
             <Route path='/cart/detalle-pedido' element={<DetallePedido/>} />
->>>>>>> b61548c91d7be59241596686a2d27c5371a93b51
+            <Route path='/PoliticaSeguridad' element={<PoliticaSeguridad/>}/>
+            <Route path='/PoliticaEnvio' element={<PoliticaEnvio/>}/>
+            <Route path='/Legal' element={<Legal/>}/>
+            <Route path='/TerminoCondiciones' element={<TerminoCondiciones/>}/>
+            <Route path='/PoliticaPrivacidad' element={<PoliticaPrivacidad/>}/>
           </Routes>
         </div>
         {!isLoginPage && <Footer/>}

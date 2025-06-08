@@ -52,7 +52,7 @@ function Header() {
                     </Link>
                 </li>   
                 <li>
-                    <Link to='info-incalpaca' className='px-4 py-2 font- hover:bg-gray-100 rounded'>
+                    <Link to='/info-incalpaca' className='px-4 py-2 font- hover:bg-gray-100 rounded'>
                         Incalpaca
                     </Link>
                 </li>
