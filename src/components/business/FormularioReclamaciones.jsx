@@ -44,16 +44,16 @@ function FormularioReclamaciones (){
     };
     const [tipoRespuesta, setTipoRespuesta] = useState("");
     return (
-        <section>
+        <section className="m-4">
             <div className="max-w-4xl w-full mx-auto space-y-4 text-center">
-                <h1 className="text-2xl font-bold text-black drop-shadow-md text-center">Libro de Reclamaciones</h1>
+                <h1 className="text-2xl font-bold text-black  text-center">Libro de Reclamaciones</h1>
                 <p className="text-black font-bold text-sm leading-relaxed text-center">
                     "Tu opinión es importante para nosotros. Si tienes alguna queja, reclamo o sugerencia, por favor completa este formulario. Estamos comprometidos a mejorar y darte la atención que mereces."
                 </p>
             </div>
 
             <div className="md:w-1/2 mx-auto mt-10 p-8 bg-gray-100 rounded-lg shadow">
-            <h2 className="text-black font-bold text-sm leading-relaxed text-center">Datos de la persona que presenta el reclamo</h2>
+            <h2 className="text-black font-bold text-sm leading-relaxed text-center pb-4">Datos de la persona que presenta el reclamo</h2>
             <form method="post" className="w-full max-w-md space-y-4 mx-auto">
                 <div>
                     <label htmlFor="tipoDocumento" className="block text-gray-800 font-semibold mb-1">Tipo de Documento:</label>

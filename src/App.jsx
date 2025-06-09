@@ -14,7 +14,6 @@ import { Providers } from './components/context/Providers'
 import Login from './components/user/Login'
 import CartPage from './pages/CartPage'
 import SearchResults from './pages/SearchResults'
-
 import Reclamaciones from './pages/Reclamaciones'
 import DetallePedido from './pages/DetallePedido'
 import PoliticaSeguridad from './pages/PoliticaSeguridad'

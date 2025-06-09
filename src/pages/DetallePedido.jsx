@@ -5,6 +5,8 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Papa from 'papaparse';
+import MetodoPago from '../components/business/MetodoPago';
+import axios from 'axios';
 
 const steps = [
   "Datos Personales",
@@ -46,7 +48,31 @@ function DetallePedido() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const handlePrev = () => setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
-  const handleNext = () => setCurrentIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
+  const handleNext = async () => {
+    if (step === 0) {
+      await saveUserData({
+        nombre: form.nombres,
+        apellido: form.apellidos,
+        dni: form.dni,
+        telefono: form.telefono,
+        fecha_nacimiento: form.fechaNacimiento,
+        genero: form.genero,
+      });
+    }
+    if (step === 1) {
+      await saveDireccion({
+        titulo: form.titulo,
+        direccion: form.direccion,
+        departamento: departamento,
+        provincia: provincia,
+        distrito: distrito,
+        referencia: form.referencia,
+        codigo_postal: form.codigoPostal,
+        es_principal: form.es_principal,
+      });
+    }
+    setStep(step + 1);
+  };
 
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -78,6 +104,13 @@ function DetallePedido() {
   const [distrito, setDistrito] = useState("");
   const [provinciasFiltradas, setProvinciasFiltradas] = useState([]);
   const [distritosFiltrados, setDistritosFiltrados] = useState([]);
+
+  const [paymentStatus, setPaymentStatus] = useState(null);
+
+  const [userData, setUserData] = useState(null);
+  const [direcciones, setDirecciones] = useState([]);
+  const [selectedDireccion, setSelectedDireccion] = useState(null);
+
 
   useEffect(() => {
     Papa.parse('/src/constants/ubicaciones/UBIGEOS_2022_1891_distritos.csv', {
@@ -134,6 +167,44 @@ function DetallePedido() {
     }
   }, [mapPosition, ubigeos]);
 
+  useEffect(() => {
+    if (selectedDireccion) {
+      setForm(f => ({
+        ...f,
+        titulo: selectedDireccion.titulo || '',
+        direccion: selectedDireccion.direccion || '',
+        region: selectedDireccion.departamento || '',
+        provincia: selectedDireccion.provincia || '',
+        distrito: selectedDireccion.distrito || '',
+        referencia: selectedDireccion.referencia || '',
+        codigoPostal: selectedDireccion.codigo_postal || '',
+        es_principal: !!selectedDireccion.es_principal,
+      }));
+      setDepartamento(selectedDireccion.departamento || '');
+      setProvincia(selectedDireccion.provincia || '');
+      setDistrito(selectedDireccion.distrito || '');
+    }
+  }, [selectedDireccion]);
+
+  useEffect(() => {
+    const fetchDireccionees = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('Usuario no autenticado');
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/payment/direccion_usuario`,
+          { headers: {Authorization: `Bearer ${token}`} }
+        );
+        setDirecciones(response.data);
+      }catch(e) {
+          console.error("error xd");
+      }
+    }
+  });
+
   const validateStep = () => {
     let newErrors = {};
     if (step === 0) {
@@ -164,10 +235,56 @@ function DetallePedido() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateStep()) {
-      alert("¡Pedido realizado con éxito!");
+      try {
+        setPaymentStatus('success'); 
+      } catch {
+        setPaymentStatus('error');
+      }
+    }
+  };
+
+  const saveUserData = async (userData) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('Usuario no autenticado.');
+      return;
+    }
+    try {
+      await axios.put(
+        'http://localhost:3000/payment/agregar_usuario_datos',
+        userData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al guardar datos personales:', e.response.data);
+      } else {
+        console.error('Error al guardar datos personales:', e.message);
+      }
+    }
+  };
+
+  const saveDireccion = async (direccion) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('Usuario no autenticado.');
+      return;
+    }
+    try {
+      await axios.post(
+        'http://localhost:3000/payment/agregar_direccion_usuario',
+        direccion,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al guardar dirección:', e.response.data);
+      } else {
+        console.error('Error al guardar dirección:', e.message);
+      }
     }
   };
 
@@ -220,7 +337,7 @@ function DetallePedido() {
                         style={{ minHeight: 120 }}
                       >
                         <div className="w-full flex flex-col items-center">
-                          <div className="w-[120px] h-[160px] md:w-[150px] md:h-[200px] rounded-xl overflow-hidden bg-gray-50 shadow border border-[#C19A6B] flex items-center justify-center mb-3">
+                          <div className="w-[120px] h-[160px] md:w-[150px] md:h-[200px] rounded-xl overflow-hidden bg-gray-50 shadow flex items-center justify-center mb-3">
                             <img
                               src={`/${items[currentIndex].imagen}`}
                               alt={items[currentIndex].nombre}
@@ -342,6 +459,24 @@ function DetallePedido() {
 
             {step === 1 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block font-semibold">Selecciona una dirección guardada</label>
+                  <select
+                    className="input"
+                    value={selectedDireccion ? selectedDireccion.id_direccion : ''}
+                    onChange={e => {
+                      const found = direcciones.find(d => d.id_direccion === Number(e.target.value));
+                      setSelectedDireccion(found);
+                    }}
+                  >
+                    <option value="">Nueva dirección</option>
+                    {direcciones.map(dir => (
+                      <option key={dir.id_direccion} value={dir.id_direccion}>
+                        {dir.titulo || dir.direccion}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block font-semibold">Título de dirección</label>
                   <input name="titulo" value={form.titulo || ''} onChange={handleChange} className="input" placeholder="Ej: Casa, Oficina..." />
@@ -395,53 +530,92 @@ function DetallePedido() {
             )}
 
             {step === 2 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-semibold">Método de Pago</label>
-                  <select name="metodoPago" value={form.metodoPago} onChange={handleChange} className="input">
-                    <option value="">Selecciona</option>
-                    <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                    <option value="transferencia">Transferencia Bancaria</option>
-                    <option value="contraentrega">Pago contra entrega</option>
-                  </select>
-                  {errors.metodoPago && <span className="text-red-500 text-xs">{errors.metodoPago}</span>}
-                </div>
-                {form.metodoPago === "tarjeta" && (
-                  <>
-                    <div>
-                      <label className="block font-semibold">Número de Tarjeta</label>
-                      <input name="tarjeta" value={form.tarjeta} onChange={handleChange} className="input" />
-                      {errors.tarjeta && <span className="text-red-500 text-xs">{errors.tarjeta}</span>}
-                    </div>
-                    <div>
-                      <label className="block font-semibold">Vencimiento</label>
-                      <input name="vencimiento" value={form.vencimiento} onChange={handleChange} className="input" placeholder="MM/AA" />
-                      {errors.vencimiento && <span className="text-red-500 text-xs">{errors.vencimiento}</span>}
-                    </div>
-                    <div>
-                      <label className="block font-semibold">CVV</label>
-                      <input name="cvv" value={form.cvv} onChange={handleChange} className="input" />
-                      {errors.cvv && <span className="text-red-500 text-xs">{errors.cvv}</span>}
-                    </div>
-                  </>
-                )}
-              </div>
+              <MetodoPago form={form} errors={errors} handleChange={handleChange} />
             )}
 
             {step === 3 && (
               <div className="space-y-4">
-                <h3 className="font-bold text-lg mb-2">Resumen del Pedido</h3>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p><span className="font-semibold">Nombre:</span> {form.nombres} {form.apellidos}</p>
-                  <p><span className="font-semibold">DNI:</span> {form.dni}</p>
-                  <p><span className="font-semibold">Teléfono:</span> {form.telefono}</p>
-                  <p><span className="font-semibold">Dirección:</span> {form.direccion}, {form.ciudad}, {form.region}, {form.codigoPostal}</p>
-                  <p><span className="font-semibold">Método de Pago:</span> {form.metodoPago}</p>
-                  {form.metodoPago === "tarjeta" && (
-                    <p><span className="font-semibold">Tarjeta:</span> **** **** **** {form.tarjeta.slice(-4)}</p>
+                <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
+                  Resumen del Pedido
+                  {paymentStatus === 'success' && (
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100 text-green-600 border border-green-400">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
                   )}
+                  {paymentStatus === 'error' && (
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-600 border border-red-400">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                </h3>
+                <div className="bg-[#F5E9DA] border border-[#C19A6B] rounded-xl p-6 flex flex-col gap-2 shadow-sm">
+                  <div className="flex flex-wrap gap-4 mb-2">
+                    <div className="flex-1 min-w-[180px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Nombre</div>
+                      <div className="font-bold text-[#8B5C2A]">{form.nombres} {form.apellidos}</div>
+                    </div>
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">DNI</div>
+                      <div className="text-[#8B5C2A]">{form.dni}</div>
+                    </div>
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Teléfono</div>
+                      <div className="text-[#8B5C2A]">{form.telefono}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4 mb-2">
+                    <div className="flex-1 min-w-[220px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Dirección</div>
+                      <div className="text-[#8B5C2A]">{form.direccion}, {form.ciudad}, {form.region}, {form.codigoPostal}</div>
+                    </div>
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Referencia</div>
+                      <div className="text-[#8B5C2A]">{form.referencia}</div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4 mb-2">
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Método de Pago</div>
+                      <div className="text-[#8B5C2A]">{form.metodoPago}</div>
+                    </div>
+                    {form.metodoPago === "tarjeta" && (
+                      <div className="flex-1 min-w-[120px]">
+                        <div className="text-xs text-[#C19A6B] font-semibold mb-1">Tarjeta</div>
+                        <div className="text-[#8B5C2A]">**** **** **** {form.tarjeta.slice(-4)}</div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-4 border-t border-[#C19A6B] pt-3 mt-2">
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Subtotal</div>
+                      <div className="text-[#8B5C2A]">S/ {subtotal}</div>
+                    </div>
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Envío</div>
+                      <div className="text-[#8B5C2A]">S/ {shipping}</div>
+                    </div>
+                    <div className="flex-1 min-w-[120px]">
+                      <div className="text-xs text-[#C19A6B] font-semibold mb-1">Total</div>
+                      <div className="font-bold text-[#8B5C2A] text-lg">S/ {total}</div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-green-600 font-semibold">Por favor, revisa que toda la información sea correcta antes de confirmar tu pedido.</p>
+                <p className="text-green-700 font-semibold text-sm flex items-center gap-2">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Por favor, revisa que toda la información sea correcta antes de confirmar tu pedido.
+                </p>
+                {paymentStatus === 'success' && (
+                  <div className="text-green-600 font-bold flex items-center gap-2 mt-2">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    ¡Pago realizado con éxito!
+                  </div>
+                )}
+                {paymentStatus === 'error' && (
+                  <div className="text-red-600 font-bold flex items-center gap-2 mt-2">
+                    <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    Hubo un error al procesar el pago. Intenta nuevamente o contacta soporte.
+                  </div>
+                )}
               </div>
             )}
 
@@ -452,7 +626,7 @@ function DetallePedido() {
                 </button>
               )}
               {step < steps.length - 1 && (
-                <button type="button" onClick={() => setStep(step + 1)} className="ml-auto px-6 py-2 rounded bg-[#8B5C2A] text-white hover:bg-[#C19A6B] font-semibold transition-colors duration-200">
+                <button type="button" onClick={handleNext} className="ml-auto px-6 py-2 rounded bg-[#8B5C2A] text-white hover:bg-[#C19A6B] font-semibold transition-colors duration-200">
                   Siguiente
                 </button>
               )}
