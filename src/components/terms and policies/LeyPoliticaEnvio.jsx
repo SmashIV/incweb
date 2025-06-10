@@ -1,5 +1,180 @@
 import { motion } from "framer-motion";
 import { Truck, Clock, MapPin, Phone, Mail, AlertCircle, Package, Store, CreditCard } from "lucide-react";
+import { useRef, useEffect } from "react";
+
+function MathPatternBackground() {
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  const timeRef = useRef(0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    const resizeCanvas = () => {
+      const container = canvas.parentElement;
+      canvas.width = container.offsetWidth;
+      canvas.height = container.offsetHeight;
+    };
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const drawGreekOmega = (x, y, size, time, rotation = 0) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + Math.sin(time * 0.5) * 0.1);
+      
+      ctx.beginPath();
+      ctx.font = `${size}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.fillText('Ω', 0, 0);
+      
+      ctx.restore();
+    };
+
+    const drawSquareAndCompass = (x, y, size, time, rotation = 0) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + Math.sin(time * 0.3) * 0.1);
+      
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.rect(-size/2, -size/2, size, size);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(0, -size/2);
+      ctx.lineTo(size/2, size/2);
+      ctx.moveTo(0, -size/2);
+      ctx.lineTo(-size/2, size/2);
+      ctx.stroke();
+      
+      ctx.restore();
+    };
+
+    const drawAllSeeingEye = (x, y, size, time) => {
+      ctx.save();
+      ctx.translate(x, y);
+      
+      ctx.beginPath();
+      ctx.moveTo(0, -size/2);
+      ctx.lineTo(size/2, size/2);
+      ctx.lineTo(-size/2, size/2);
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      const eyeSize = size * 0.3;
+      ctx.beginPath();
+      ctx.arc(0, 0, eyeSize, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      const pupilSize = eyeSize * 0.4;
+      ctx.beginPath();
+      ctx.arc(0, 0, pupilSize, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fill();
+      
+      ctx.restore();
+    };
+
+    const drawPattern = () => {
+      const width = canvas.width;
+      const height = canvas.height;
+      const time = timeRef.current;
+      
+      ctx.clearRect(0, 0, width, height);
+
+      const cornerSize = Math.min(width, height) * 0.15;
+      const corners = [
+        { x: cornerSize, y: cornerSize, rotation: 0 },
+        { x: width - cornerSize, y: cornerSize, rotation: Math.PI / 2 },
+        { x: cornerSize, y: height - cornerSize, rotation: -Math.PI / 2 },
+        { x: width - cornerSize, y: height - cornerSize, rotation: Math.PI }
+      ];
+
+      corners.forEach(corner => {
+        drawGreekOmega(corner.x, corner.y, cornerSize, time, corner.rotation);
+      });
+
+      const topSize = Math.min(width, height) * 0.1;
+      const topSpacing = width / 6;
+      for (let i = 2; i < 5; i++) {
+        drawSquareAndCompass(i * topSpacing, topSize, topSize, time, Math.PI / 4);
+      }
+
+      const bottomSize = Math.min(width, height) * 0.1;
+      const bottomSpacing = width / 6;
+      for (let i = 2; i < 5; i++) {
+        drawAllSeeingEye(i * bottomSpacing, height - bottomSize, bottomSize, time);
+      }
+
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.lineWidth = 1;
+
+      const lineSpacing = height / 4;
+      for (let i = 1; i < 4; i++) {
+        const y = i * lineSpacing;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        
+        const steps = 50;
+        for (let j = 0; j <= steps; j++) {
+          const x = (width * j) / steps;
+          const wave = Math.sin(x * 0.01 + time) * 10;
+          ctx.lineTo(x, y + wave);
+        }
+        
+        ctx.stroke();
+      }
+
+      const vLineSpacing = width / 4;
+      for (let i = 1; i < 4; i++) {
+        const x = i * vLineSpacing;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        
+        const steps = 50;
+        for (let j = 0; j <= steps; j++) {
+          const y = (height * j) / steps;
+          const wave = Math.sin(y * 0.01 + time) * 10;
+          ctx.lineTo(x + wave, y);
+        }
+        
+        ctx.stroke();
+      }
+
+      timeRef.current += 0.01;
+      animationRef.current = requestAnimationFrame(drawPattern);
+    };
+
+    drawPattern();
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationRef.current);
+    };
+  }, []);
+
+  return (
+    <motion.canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ 
+        pointerEvents: 'none',
+        zIndex: 0
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    />
+  );
+}
 
 function LeyPoliticaEnvio() {
     const containerVariants = {
@@ -46,9 +221,10 @@ function LeyPoliticaEnvio() {
             initial="hidden"
             animate="visible"
             variants={containerVariants}
-            className="min-h-screen bg-white py-12 px-4"
+            className="min-h-screen bg-white py-12 px-4 relative"
         >
-            <div className="max-w-7xl mx-auto">
+            <MathPatternBackground />
+            <div className="max-w-7xl mx-auto relative z-10">
                 <motion.section 
                     variants={itemVariants}
                     className="text-center mb-16"

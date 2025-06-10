@@ -36,7 +36,7 @@ function MathPatternBackground() {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      const gridSize = 40;
+      const gridSize = 20;
       for (let x = 0; x < width; x += gridSize) {
         for (let y = 0; y < height; y += gridSize) {
           const wave = Math.sin(x * 0.01 + time) * 10 + Math.cos(y * 0.01 + time) * 10;
@@ -47,7 +47,7 @@ function MathPatternBackground() {
       }
 
       for (let i = 0; i < 5; i++) {
-        const radius = 100 + i * 60;
+        const radius = 200 + i * 60;
         const rotation = time * 0.2 + i * 0.5;
         ctx.beginPath();
         ctx.arc(
@@ -62,7 +62,7 @@ function MathPatternBackground() {
 
       for (let i = 0; i < 20; i++) {
         const angle = (i * Math.PI * 2) / 20 + time * 0.3;
-        const length = 150 + Math.sin(time * 2 + i) * 30;
+        const length = 250 + Math.sin(time * 2 + i) * 30;
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.lineTo(
@@ -74,7 +74,7 @@ function MathPatternBackground() {
 
       for (let i = 0; i < 100; i++) {
         const angle = i * 0.1 + time * 0.5;
-        const radius = i * 3;
+        const radius = i * 2;
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
         
@@ -89,7 +89,7 @@ function MathPatternBackground() {
 
       for (let i = 0; i < 50; i++) {
         const angle = (i * Math.PI * 2) / 50 + time;
-        const radius = 200 + Math.sin(time * 3 + i) * 50;
+        const radius = 100 + Math.sin(time * 3 + i) * 50;
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
         
