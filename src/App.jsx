@@ -21,15 +21,19 @@ import PoliticaEnvio from './pages/PoliticaEnvio'
 import Legal from './pages/Legal'
 import TerminoCondiciones from './pages/TerminoCondiciones'
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad'
+import PageEditAccount from './pages/PageEditAccount'
 
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
+  const isEditAccountPage = location.pathname === '/edit-account';
+
+  const hideLayout = isLoginPage || isEditAccountPage;
 
   return (
     <Providers>
       <div className='flex flex-col min-h-screen bg-white'>
-        {!isLoginPage && <Header/>}
+        {!hideLayout && <Header />}
         <div id='main-content' className={isLoginPage ? '' : 'flex-grow'}>
           <Routes>
             <Route path='/' element={<Home/>}/>
@@ -49,9 +53,10 @@ function App() {
             <Route path='/Legal' element={<Legal/>}/>
             <Route path='/TerminoCondiciones' element={<TerminoCondiciones/>}/>
             <Route path='/PoliticaPrivacidad' element={<PoliticaPrivacidad/>}/>
+            <Route path='/edit-account' element={<PageEditAccount/>}/>
           </Routes>
         </div>
-        {!isLoginPage && <Footer/>}
+        {!hideLayout && <Footer />}
       </div>
     </Providers>
   )

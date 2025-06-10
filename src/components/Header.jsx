@@ -1,12 +1,14 @@
 import logo from '../assets/INCALPACA.webp';
-import { ShoppingBasket, CircleUser, LocateFixed, Search, LogOut } from 'lucide-react';
+import { ShoppingBasket, CircleUser, LocateFixed, Search, LogOut, Carrot} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import CartSidebar from './sales/CartSideBar';
 import { useCart } from './context/CartContext';
 import { useAuth } from './context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import SearchBar from './SearchBar';
+
 
 function Header() {
     const [cartOpen, setCartOpen] = useState(false);
@@ -14,6 +16,7 @@ function Header() {
     const [searchOpen, setSearchOpen] = useState(false);
     const { totalItems } = useCart();
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     const handleLogout = async () => {
         try {
@@ -23,6 +26,17 @@ function Header() {
             console.error('Error al cerrar sesión:', error);
         }
     };
+
+    const editAccount = async () => {
+        try{
+            setUserMenuOpen(false); // Cierra el menú si estaba abierto
+            navigate('/edit-account');
+        } catch (error){
+            console.error('Error al cerrar sesión:', error);
+        }
+    }
+
+
 
     return (
         <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm relative">
@@ -84,6 +98,14 @@ function Header() {
                                         exit={{ opacity: 0, y: 10 }}
                                         className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50"
                                     >
+                                        <button
+                                            onClick={editAccount}
+                                            className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            <Carrot className="w-4 h-4" />
+                                            <span>Editar cuenta</span>
+
+                                        </button>
                                         <button
                                             onClick={handleLogout}
                                             className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
