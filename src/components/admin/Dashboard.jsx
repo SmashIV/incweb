@@ -2,7 +2,7 @@ import React from 'react';
 import { ShoppingCart, Users, Package, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
-  // Mock data - replace with real data from your API
+  // Mock data
   const metrics = {
     totalSales: 125000,
     totalOrders: 156,
@@ -28,7 +28,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <div className="text-sm text-gray-500">
@@ -36,9 +35,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Sales */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -57,7 +54,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Total Orders */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -76,7 +72,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Total Products */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -94,7 +89,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Total Customers */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -114,7 +108,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Monthly Target Progress */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Meta Mensual</h2>
         <div className="space-y-4">
@@ -137,9 +130,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recent Orders and Top Products */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Orders */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Pedidos Recientes</h2>
@@ -166,7 +157,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Top Products */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Productos Más Vendidos</h2>

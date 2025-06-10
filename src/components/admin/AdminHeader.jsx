@@ -6,7 +6,6 @@ const AdminHeader = () => {
     <header className="bg-white shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
-          {/* Left side - Search */}
           <div className="flex-1 flex items-center">
             <div className="w-full max-w-lg lg:max-w-xs">
               <label htmlFor="search" className="sr-only">Buscar</label>
@@ -25,9 +24,7 @@ const AdminHeader = () => {
             </div>
           </div>
 
-          {/* Right side - Notifications and Profile */}
           <div className="flex items-center">
-            {/* Notifications */}
             <button
               type="button"
               className="p-1 rounded-full text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
@@ -36,7 +33,6 @@ const AdminHeader = () => {
               <Bell className="h-6 w-6" />
             </button>
 
-            {/* Profile dropdown */}
             <div className="ml-3 relative">
               <div>
                 <button

@@ -66,7 +66,6 @@ function MetodoPago({ total }) {
             <h3 className="font-bold text-lg text-[#8B5C2A] mb-1">Método de Pago</h3>
             <p className="text-sm text-gray-700 mb-2">Selecciona tu método de pago preferido y completa los datos requeridos. El pago es 100% seguro y procesado por MercadoPago.</p>
 
-            {/* Promo code */}
             <form onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row gap-2 items-start sm:items-end mb-2">
                 <div className="flex flex-col w-full sm:w-auto">
                     <label htmlFor="promo" className="text-xs font-semibold text-[#8B5C2A] mb-1">Código de Promoción</label>
@@ -89,7 +88,6 @@ function MetodoPago({ total }) {
             {promoMessage && <div className="text-green-600 text-xs font-semibold mb-1">{promoMessage}</div>}
             {promoError && <div className="text-red-500 text-xs font-semibold mb-1">{promoError}</div>}
 
-            {/* MercadoPago button */}
             <div className="flex flex-col gap-2 w-full">
                 <button
                     type="button"
@@ -119,7 +117,6 @@ function MetodoPago({ total }) {
                 )}
             </div>
 
-            {/* Advertencia */}
             <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded text-xs mt-2">
                 <b>Advertencia:</b> No cierres ni recargues la página durante el proceso de pago. Si tienes problemas, comunícate con nuestro soporte.
             </div>
