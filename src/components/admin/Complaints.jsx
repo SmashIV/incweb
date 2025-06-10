@@ -32,7 +32,6 @@ const Complaints = () => {
         <h1 className="text-2xl font-semibold text-gray-900">Gestión de Quejas</h1>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (
           <motion.div
@@ -55,7 +54,6 @@ const Complaints = () => {
         ))}
       </div>
 
-      {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
@@ -88,7 +86,6 @@ const Complaints = () => {
         </div>
       </div>
 
-      {/* Complaints Grid */}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>

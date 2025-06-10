@@ -74,8 +74,6 @@ function App() {
             <Route path='/admin/complaints' element={<AdminLayout><Complaints/></AdminLayout>}/>
           </Routes>
         </div>
-        {!hideLayout && <Footer />}
-        {!isLoginPage && <Footer/>}
         {!isLoginPage && !isAdminPage && <Footer/>}
       </div>
     </Providers>
