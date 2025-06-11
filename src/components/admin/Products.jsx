@@ -95,9 +95,36 @@ const Products = () => {
       try {
         setLoading(true);
         const productsData = await getProducts();
-        console.log('Productos recibidos:', productsData);
-        setProducts(productsData);
-        setStats(calculateProductStats(productsData));
+        
+        // Obtener las imágenes adicionales para cada producto
+        const productsWithImages = await Promise.all(
+          productsData.map(async (product) => {
+            try {
+              const response = await axios.get(
+                `http://localhost:3000/admin/get_producto_imagenes/${product.id}`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  }
+                }
+              );
+              return {
+                ...product,
+                imagenes_adicionales: response.data
+              };
+            } catch (error) {
+              console.error(`Error al cargar imágenes para el producto ${product.id}:`, error);
+              return {
+                ...product,
+                imagenes_adicionales: []
+              };
+            }
+          })
+        );
+
+        console.log('Productos con imágenes:', productsWithImages);
+        setProducts(productsWithImages);
+        setStats(calculateProductStats(productsWithImages));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -341,6 +368,11 @@ const Products = () => {
                     e.target.src = '/placeholder.png';
                   }}
                 />
+                {product.imagenes_adicionales && product.imagenes_adicionales.length > 0 && (
+                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                    +{product.imagenes_adicionales.length}
+                  </div>
+                )}
               </div>
               <div className="p-4 flex-1">
                 <div className="flex justify-between items-start mb-2">

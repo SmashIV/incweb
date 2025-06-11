@@ -37,9 +37,26 @@ function ProductDetail() {
       .then(res => {
         setProduct(res.data);
         if (res.data) {
-          const imgs = [res.data.imagen, res.data.imagen, res.data.imagen];
-          setImages(imgs);
-          setSelectedImage(imgs[0]);
+          // Obtener las imágenes adicionales del producto
+          const token = localStorage.getItem('token');
+          axios.get(`http://localhost:3000/admin/get_producto_imagenes/${id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+            .then(imgsRes => {
+              // La imagen principal viene del producto y las adicionales del endpoint
+              const allImages = [res.data.imagen, ...imgsRes.data.map(img => img.url_imagen)];
+              setImages(allImages);
+              setSelectedImage(allImages[0]);
+            })
+            .catch(err => {
+              console.error('Error al cargar imágenes adicionales:', err);
+              // Si hay error, usar solo la imagen principal
+              setImages([res.data.imagen]);
+              setSelectedImage(res.data.imagen);
+            });
         } else {
           setImages([]);
           setSelectedImage(null);
