@@ -326,11 +326,11 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
                             {images.length > 0 && (
                                 <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {images.map((image, index) => (
-                                        <div key={index} className="relative group">
+                                        <div key={index} className="relative group aspect-square">
                                             <img
                                                 src={image.preview}
                                                 alt={`Preview ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg"
+                                                className="w-full h-full object-contain rounded-lg bg-gray-50"
                                             />
                                             <button
                                                 type="button"

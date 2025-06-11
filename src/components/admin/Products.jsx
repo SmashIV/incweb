@@ -359,9 +359,6 @@ const Products = () => {
                 <div className="flex justify-between items-center">
                   <p className="font-semibold text-gray-900">S/ {product.precio_unitario}</p>
                   <div className="flex items-center gap-2">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <Eye size={18} />
-                    </button>
                     <button 
                       className="p-2 hover:bg-gray-100 rounded-lg"
                       onClick={() => handleEditClick(product)}
