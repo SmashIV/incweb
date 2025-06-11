@@ -95,7 +95,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -110,7 +110,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -125,7 +125,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <div className="flex justify-center my-16">
                             <div className="w-24 h-24 border-2 border-gray-200 rounded-full transform rotate-45"></div>
@@ -144,7 +144,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -159,7 +159,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -174,7 +174,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -189,7 +189,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -204,7 +204,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -219,7 +219,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -234,7 +234,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -249,7 +249,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -264,7 +264,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+                </section>
 
                         <section className="relative group">
                             <div className="absolute -left-4 top-0 w-1 h-full bg-gray-200 transform group-hover:scale-y-110 transition-transform duration-300"></div>
@@ -279,7 +279,7 @@ function InforTerminoCondiciones() {
                                     </p>
                                 </div>
                             </div>
-                        </section>
+            </section>
                     </div>
 
                     <div className="flex justify-center mt-16">
@@ -287,7 +287,7 @@ function InforTerminoCondiciones() {
                         <div className="w-32 h-1 bg-gray-900 transform rotate-45"></div>
                     </div>
                 </div>
-            </main>
+        </main>
         </div>
     );
 }

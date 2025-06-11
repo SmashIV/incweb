@@ -24,10 +24,12 @@
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
     "react-google-recaptcha": "^3.1.0",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.5.3",
-    "swiper": "^11.2.6"
+    "swiper": "^11.2.6",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

@@ -47,34 +47,70 @@ function DetallePedido() {
   const total = subtotal + shipping;
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const handlePrev = () => setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
-  const handleNext = async () => {
-    if (step === 0) {
-      await saveUserData({
-        nombre: form.nombres,
-        apellido: form.apellidos,
-        dni: form.dni,
-        telefono: form.telefono,
-        fecha_nacimiento: form.fechaNacimiento,
-        genero: form.genero,
-      });
+  
+  // Función para navegar el carrusel de productos
+  const handleProductNavigation = (direction) => {
+    if (direction === 'prev') {
+      setCurrentIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
+    } else {
+      setCurrentIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
     }
-    if (step === 1) {
-      await saveDireccion({
-        titulo: form.titulo,
-        direccion: form.direccion,
-        departamento: departamento,
-        provincia: provincia,
-        distrito: distrito,
-        referencia: form.referencia,
-        codigo_postal: form.codigoPostal,
-        es_principal: form.es_principal,
-      });
+  };
+
+  // Función para retroceder al paso anterior
+  const handlePrev = () => {
+    setStep(step - 1);
+    setStepErrors({});
+  };
+
+  // Función para avanzar al siguiente paso
+  const handleNextStep = async () => {
+    if (!validateStep()) {
+      return;
     }
-    setStep(step + 1);
+
+    setIsSubmitting(true);
+    try {
+      if (step === 0) {
+        if (!userData) {
+          await saveUserData({
+            nombre: form.nombres,
+            apellido: form.apellidos,
+            dni: form.dni,
+            telefono: form.telefono,
+            fecha_nacimiento: form.fechaNacimiento,
+            genero: form.genero,
+          });
+        }
+      }
+      if (step === 1) {
+        if (selectedDireccion) {
+          await saveDireccionPedido(selectedDireccion.id_direccion);
+        } else {
+          await saveDireccion({
+            titulo: form.titulo,
+            direccion: form.direccion,
+            departamento: departamento,
+            provincia: provincia,
+            distrito: distrito,
+            referencia: form.referencia,
+            codigo_postal: form.codigoPostal,
+            es_principal: form.es_principal,
+          });
+        }
+      }
+      setStep(step + 1);
+    } catch (error) {
+      console.error('Error al procesar el paso:', error);
+      setStepErrors({ general: 'Error al procesar la información. Por favor, intenta nuevamente.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stepErrors, setStepErrors] = useState({});
   const [form, setForm] = useState({
     nombres: "",
     apellidos: "",
@@ -94,7 +130,6 @@ function DetallePedido() {
     referencia: "",
     es_principal: false
   });
-  const [errors, setErrors] = useState({});
 
   const [mapPosition, setMapPosition] = useState(null);
 
@@ -110,7 +145,7 @@ function DetallePedido() {
   const [userData, setUserData] = useState(null);
   const [direcciones, setDirecciones] = useState([]);
   const [selectedDireccion, setSelectedDireccion] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     Papa.parse('/src/constants/ubicaciones/UBIGEOS_2022_1891_distritos.csv', {
@@ -187,7 +222,7 @@ function DetallePedido() {
   }, [selectedDireccion]);
 
   useEffect(() => {
-    const fetchDireccionees = async () => {
+    const fetchDirecciones = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         console.warn('Usuario no autenticado');
@@ -199,11 +234,49 @@ function DetallePedido() {
           { headers: {Authorization: `Bearer ${token}`} }
         );
         setDirecciones(response.data);
-      }catch(e) {
-          console.error("error xd");
+      } catch(e) {
+          console.error("Error al obtener direcciones:", e);
       }
-    }
-  });
+    };
+    
+    fetchDirecciones();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('Usuario no autenticado');
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await axios.get(
+          'http://localhost:3000/payment/get_usuario_datos',
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (response.data) {
+          setUserData(response.data);
+          // Si hay datos, los prellenamos en el formulario
+          setForm(f => ({
+            ...f,
+            nombres: response.data.nombre || '',
+            apellidos: response.data.apellido || '',
+            dni: response.data.dni || '',
+            telefono: response.data.telefono || '',
+            fechaNacimiento: response.data.fecha_nacimiento || '',
+            genero: response.data.genero || '',
+          }));
+        }
+      } catch (e) {
+        console.error("Error al obtener datos del usuario:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
 
   const validateStep = () => {
     let newErrors = {};
@@ -212,22 +285,23 @@ function DetallePedido() {
       if (!form.apellidos) newErrors.apellidos = "Requerido";
       if (!form.dni) newErrors.dni = "Requerido";
       if (!form.telefono) newErrors.telefono = "Requerido";
-    }
-    if (step === 1) {
-      if (!form.direccion) newErrors.direccion = "Requerido";
-      if (!form.ciudad) newErrors.ciudad = "Requerido";
-      if (!form.region) newErrors.region = "Requerido";
-      if (!form.codigoPostal) newErrors.codigoPostal = "Requerido";
-    }
-    if (step === 2) {
-      if (!form.metodoPago) newErrors.metodoPago = "Requerido";
-      if (form.metodoPago === "tarjeta") {
-        if (!form.tarjeta) newErrors.tarjeta = "Requerido";
-        if (!form.vencimiento) newErrors.vencimiento = "Requerido";
-        if (!form.cvv) newErrors.cvv = "Requerido";
+      if (form.dni && !/^\d{8}$/.test(form.dni)) {
+        newErrors.dni = "DNI debe tener 8 dígitos";
+      }
+      if (form.telefono && !/^\d{9}$/.test(form.telefono)) {
+        newErrors.telefono = "Teléfono debe tener 9 dígitos";
       }
     }
-    setErrors(newErrors);
+    if (step === 1) {
+      if (!selectedDireccion) {
+        if (!form.direccion) newErrors.direccion = "Requerido";
+        if (!departamento) newErrors.departamento = "Requerido";
+        if (!provincia) newErrors.provincia = "Requerido";
+        if (!distrito) newErrors.distrito = "Requerido";
+        if (!form.codigoPostal) newErrors.codigoPostal = "Requerido";
+      }
+    }
+    setStepErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -286,6 +360,40 @@ function DetallePedido() {
         console.error('Error al guardar dirección:', e.message);
       }
     }
+  };
+
+  const saveDireccionPedido = async (id_direccion) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('Usuario no autenticado.');
+      return;
+    }
+    try {
+      await axios.post(
+        'http://localhost:3000/payment/save_direccion_pedido',
+        { id_direccion },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (e) {
+      if (e.response) {
+        console.error('Error al guardar dirección del pedido:', e.response.data);
+      } else {
+        console.error('Error al guardar dirección del pedido:', e.message);
+      }
+    }
+  };
+
+  const handlePaymentSuccess = (data) => {
+    setPaymentStatus('success');
+    // Redirigir a página de confirmación después de 2 segundos
+    setTimeout(() => {
+      window.location.href = `/confirmacion/${data.id_pedido}`;
+    }, 2000);
+  };
+
+  const handlePaymentError = (error) => {
+    setPaymentStatus('error');
+    setStepErrors({ payment: error.message || 'Error al procesar el pago' });
   };
 
   return (
@@ -361,7 +469,7 @@ function DetallePedido() {
                     {items.length > 1 && (
                       <div className="flex justify-center items-center gap-3 mt-3">
                         <button
-                          onClick={handlePrev}
+                          onClick={() => handleProductNavigation('prev')}
                           className="w-7 h-7 rounded-full bg-[#C19A6B] text-white flex items-center justify-center hover:bg-[#8B5C2A] transition"
                           aria-label="Producto anterior"
                         >
@@ -369,7 +477,7 @@ function DetallePedido() {
                         </button>
                         <span className="text-[#8B5C2A] font-semibold text-xs">{currentIndex + 1} / {items.length}</span>
                         <button
-                          onClick={handleNext}
+                          onClick={() => handleProductNavigation('next')}
                           className="w-7 h-7 rounded-full bg-[#C19A6B] text-white flex items-center justify-center hover:bg-[#8B5C2A] transition"
                           aria-label="Producto siguiente"
                         >
@@ -423,37 +531,81 @@ function DetallePedido() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold">Nombres</label>
-                  <input name="nombres" value={form.nombres} onChange={handleChange} className="input" />
-                  {errors.nombres && <span className="text-red-500 text-xs">{errors.nombres}</span>}
+                  <input 
+                    name="nombres" 
+                    value={form.nombres} 
+                    onChange={handleChange} 
+                    className={`input ${userData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={!!userData}
+                  />
+                  {stepErrors.nombres && <span className="text-red-500 text-xs">{stepErrors.nombres}</span>}
                 </div>
                 <div>
                   <label className="block font-semibold">Apellidos</label>
-                  <input name="apellidos" value={form.apellidos} onChange={handleChange} className="input" />
-                  {errors.apellidos && <span className="text-red-500 text-xs">{errors.apellidos}</span>}
+                  <input 
+                    name="apellidos" 
+                    value={form.apellidos} 
+                    onChange={handleChange} 
+                    className={`input ${userData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={!!userData}
+                  />
+                  {stepErrors.apellidos && <span className="text-red-500 text-xs">{stepErrors.apellidos}</span>}
                 </div>
                 <div>
                   <label className="block font-semibold">DNI</label>
-                  <input name="dni" value={form.dni} onChange={handleChange} className="input" />
-                  {errors.dni && <span className="text-red-500 text-xs">{errors.dni}</span>}
+                  <input 
+                    name="dni" 
+                    value={form.dni} 
+                    onChange={handleChange} 
+                    className={`input ${userData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={!!userData}
+                  />
+                  {stepErrors.dni && <span className="text-red-500 text-xs">{stepErrors.dni}</span>}
                 </div>
                 <div>
                   <label className="block font-semibold">Teléfono</label>
-                  <input name="telefono" value={form.telefono} onChange={handleChange} className="input" />
-                  {errors.telefono && <span className="text-red-500 text-xs">{errors.telefono}</span>}
+                  <input 
+                    name="telefono" 
+                    value={form.telefono} 
+                    onChange={handleChange} 
+                    className={`input ${userData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={!!userData}
+                  />
+                  {stepErrors.telefono && <span className="text-red-500 text-xs">{stepErrors.telefono}</span>}
                 </div>
                 <div>
                   <label className="block font-semibold">Fecha de Nacimiento</label>
-                  <input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={handleChange} className="input" />
+                  <input 
+                    type="date" 
+                    name="fechaNacimiento" 
+                    value={form.fechaNacimiento} 
+                    onChange={handleChange} 
+                    className={`input ${userData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={!!userData}
+                  />
                 </div>
                 <div>
                   <label className="block font-semibold">Género</label>
-                  <select name="genero" value={form.genero} onChange={handleChange} className="input">
+                  <select 
+                    name="genero" 
+                    value={form.genero} 
+                    onChange={handleChange} 
+                    className={`input ${userData ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                    disabled={!!userData}
+                  >
                     <option value="">Selecciona</option>
                     <option value="masculino">Masculino</option>
                     <option value="femenino">Femenino</option>
                     <option value="otro">Otro</option>
                   </select>
                 </div>
+                {userData && (
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-gray-500 italic">
+                      Los datos personales no pueden ser modificados. Si necesitas actualizarlos, por favor contacta a soporte.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -465,8 +617,23 @@ function DetallePedido() {
                     className="input"
                     value={selectedDireccion ? selectedDireccion.id_direccion : ''}
                     onChange={e => {
-                      const found = direcciones.find(d => d.id_direccion === Number(e.target.value));
-                      setSelectedDireccion(found);
+                      if (e.target.value === '') {
+                        setSelectedDireccion(null);
+                        setForm(f => ({
+                          ...f,
+                          titulo: '',
+                          direccion: '',
+                          referencia: '',
+                          codigoPostal: '',
+                          es_principal: false
+                        }));
+                        setDepartamento('');
+                        setProvincia('');
+                        setDistrito('');
+                      } else {
+                        const found = direcciones.find(d => d.id_direccion === Number(e.target.value));
+                        setSelectedDireccion(found);
+                      }
                     }}
                   >
                     <option value="">Nueva dirección</option>
@@ -484,7 +651,7 @@ function DetallePedido() {
                 <div>
                   <label className="block font-semibold">Dirección</label>
                   <input name="direccion" value={form.direccion} onChange={handleChange} className="input" />
-                  {errors.direccion && <span className="text-red-500 text-xs">{errors.direccion}</span>}
+                  {stepErrors.direccion && <span className="text-red-500 text-xs">{stepErrors.direccion}</span>}
                 </div>
                 <div>
                   <label className="block font-semibold">Departamento</label>
@@ -520,7 +687,7 @@ function DetallePedido() {
                 <div>
                   <label className="block font-semibold">Código Postal</label>
                   <input name="codigoPostal" value={form.codigoPostal} onChange={handleChange} className="input" />
-                  {errors.codigoPostal && <span className="text-red-500 text-xs">{errors.codigoPostal}</span>}
+                  {stepErrors.codigoPostal && <span className="text-red-500 text-xs">{stepErrors.codigoPostal}</span>}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <input type="checkbox" name="es_principal" checked={form.es_principal || false} onChange={e => setForm(f => ({ ...f, es_principal: e.target.checked }))} />
@@ -530,7 +697,13 @@ function DetallePedido() {
             )}
 
             {step === 2 && (
-              <MetodoPago form={form} errors={errors} handleChange={handleChange} />
+              <MetodoPago 
+                form={form} 
+                errors={stepErrors} 
+                handleChange={handleChange}
+                onPaymentSuccess={handlePaymentSuccess}
+                onPaymentError={handlePaymentError}
+              />
             )}
 
             {step === 3 && (
@@ -621,22 +794,41 @@ function DetallePedido() {
 
             <div className="flex justify-between mt-8">
               {step > 0 && (
-                <button type="button" onClick={() => setStep(step - 1)} className="px-6 py-2 rounded bg-[#C19A6B] text-white hover:bg-[#8B5C2A] font-semibold transition-colors duration-200">
+                <button 
+                  type="button" 
+                  onClick={handlePrev} 
+                  className="px-6 py-2 rounded bg-[#C19A6B] text-white hover:bg-[#8B5C2A] font-semibold transition-colors duration-200 disabled:opacity-50"
+                  disabled={isSubmitting}
+                >
                   Atrás
                 </button>
               )}
               {step < steps.length - 1 && (
-                <button type="button" onClick={handleNext} className="ml-auto px-6 py-2 rounded bg-[#8B5C2A] text-white hover:bg-[#C19A6B] font-semibold transition-colors duration-200">
-                  Siguiente
+                <button 
+                  type="button" 
+                  onClick={handleNextStep} 
+                  className="ml-auto px-6 py-2 rounded bg-[#8B5C2A] text-white hover:bg-[#C19A6B] font-semibold transition-colors duration-200 disabled:opacity-50"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Procesando...' : 'Siguiente'}
                 </button>
               )}
               {step === steps.length - 1 && (
-                <button type="submit" className="ml-auto px-6 py-2 rounded bg-[#8B5C2A] text-white hover:bg-[#C19A6B] font-semibold transition-colors duration-200">
-                  Confirmar Pedido
+                <button 
+                  type="submit" 
+                  className="ml-auto px-6 py-2 rounded bg-[#8B5C2A] text-white hover:bg-[#C19A6B] font-semibold transition-colors duration-200 disabled:opacity-50"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Procesando...' : 'Confirmar Pedido'}
                 </button>
               )}
             </div>
           </form>
+          {stepErrors.general && (
+            <div className="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700 rounded">
+              {stepErrors.general}
+            </div>
+          )}
         </div>
       </div>
       <style>{`

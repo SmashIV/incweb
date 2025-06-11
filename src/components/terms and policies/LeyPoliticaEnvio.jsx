@@ -317,7 +317,7 @@ function LeyPoliticaEnvio() {
                                                 <span>Express</span>
                                                 <span className="font-semibold text-gray-900">S/30.00</span>
                                             </li>
-                                        </ul>
+                    </ul>
                                     </div>
                                 </div>
                             </motion.div>
@@ -415,7 +415,7 @@ function LeyPoliticaEnvio() {
                                             <span className="text-gray-500">•</span>
                                             <span>Firmar el cargo de recepción</span>
                                         </li>
-                                    </ul>
+                    </ul>
                                 </div>
                             </motion.div>
                         </motion.section>

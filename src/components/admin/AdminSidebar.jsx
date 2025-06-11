@@ -80,7 +80,7 @@ const AdminSidebar = () => {
       >
         <div className="flex flex-col h-full">
           <div className="h-16 flex items-center justify-center px-6 border-b border-gray-200">
-            <Link to="/admin" className="flex items-center justify-center">
+            <Link to="/" className="flex items-center justify-center">
               <img src={logo} alt="Incalpaca" className="h-8 w-auto" />
             </Link>
             <button
