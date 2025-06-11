@@ -291,3 +291,15 @@ create table usuario_datos
 create index firebase_uid
     on usuario_datos (firebase_uid);
 
+-- Insertar datos de ejemplo para la tabla usuarios
+INSERT INTO usuarios (firebase_uid, rol, email) VALUES
+('admin123', 'admin', 'admin@example.com'),
+('user123', 'user', 'user@example.com'),
+('user456', 'user', 'user2@example.com');
+
+-- Insertar datos de ejemplo para la tabla usuario_datos
+INSERT INTO usuario_datos (firebase_uid, nombre, apellido, dni, telefono, fecha_nacimiento, genero) VALUES
+('admin123', 'Admin', 'User', '12345678', '999888777', '1990-01-01', 'masculino'),
+('user123', 'John', 'Doe', '87654321', '999777666', '1995-05-15', 'masculino'),
+('user456', 'Jane', 'Smith', '98765432', '999666555', '1992-08-20', 'femenino');
+
