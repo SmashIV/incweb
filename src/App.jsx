@@ -31,15 +31,13 @@ import Users from './components/admin/Users'
 import Coupons from './components/admin/Coupons'
 import Complaints from './components/admin/Complaints'
 import AdminLayout from './components/admin/AdminLayout'
+import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute'
 
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
-
   const isEditAccountPage = location.pathname === '/edit-account';
-
   const hideLayout = isLoginPage || isEditAccountPage;
-
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
@@ -66,12 +64,37 @@ function App() {
             <Route path='/TerminoCondiciones' element={<TerminoCondiciones/>}/>
             <Route path='/PoliticaPrivacidad' element={<PoliticaPrivacidad/>}/>
             <Route path='/edit-account' element={<PageEditAccount/>}/>
-            <Route path='/admin' element={<AdminLayout><Dashboard/></AdminLayout>}/>
-            <Route path='/admin/products' element={<AdminLayout><Products/></AdminLayout>}/>
-            <Route path='/admin/orders' element={<AdminLayout><Orders/></AdminLayout>}/>
-            <Route path='/admin/users' element={<AdminLayout><Users/></AdminLayout>}/>
-            <Route path='/admin/coupons' element={<AdminLayout><Coupons/></AdminLayout>}/>
-            <Route path='/admin/complaints' element={<AdminLayout><Complaints/></AdminLayout>}/>
+            
+            <Route path='/admin' element={
+              <ProtectedAdminRoute>
+                <AdminLayout><Dashboard/></AdminLayout>
+              </ProtectedAdminRoute>
+            }/>
+            <Route path='/admin/products' element={
+              <ProtectedAdminRoute>
+                <AdminLayout><Products/></AdminLayout>
+              </ProtectedAdminRoute>
+            }/>
+            <Route path='/admin/orders' element={
+              <ProtectedAdminRoute>
+                <AdminLayout><Orders/></AdminLayout>
+              </ProtectedAdminRoute>
+            }/>
+            <Route path='/admin/users' element={
+              <ProtectedAdminRoute>
+                <AdminLayout><Users/></AdminLayout>
+              </ProtectedAdminRoute>
+            }/>
+            <Route path='/admin/coupons' element={
+              <ProtectedAdminRoute>
+                <AdminLayout><Coupons/></AdminLayout>
+              </ProtectedAdminRoute>
+            }/>
+            <Route path='/admin/complaints' element={
+              <ProtectedAdminRoute>
+                <AdminLayout><Complaints/></AdminLayout>
+              </ProtectedAdminRoute>
+            }/>
           </Routes>
         </div>
         {!isLoginPage && !isAdminPage && <Footer/>}

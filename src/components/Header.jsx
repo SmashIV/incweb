@@ -1,5 +1,5 @@
 import logo from '../assets/INCALPACA.webp';
-import { ShoppingBasket, CircleUser, LocateFixed, Search, LogOut, Carrot} from 'lucide-react';
+import { ShoppingBasket, CircleUser, LocateFixed, Search, LogOut, Carrot, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import CartSidebar from './sales/CartSideBar';
@@ -22,21 +22,25 @@ function Header() {
         try {
             await logout();
             setUserMenuOpen(false);
+            navigate('/');
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
         }
     };
 
     const editAccount = async () => {
-        try{
-            setUserMenuOpen(false); // Cierra el menú si estaba abierto
+        try {
+            setUserMenuOpen(false);
             navigate('/edit-account');
-        } catch (error){
-            console.error('Error al cerrar sesión:', error);
+        } catch (error) {
+            console.error('Error al navegar:', error);
         }
-    }
+    };
 
-
+    const goToAdmin = () => {
+        setUserMenuOpen(false);
+        navigate('/admin');
+    };
 
     return (
         <div className="flex items-center justify-between text-black bg-white p-4 py-4 shadow-sm relative">
@@ -104,8 +108,16 @@ function Header() {
                                         >
                                             <Carrot className="w-4 h-4" />
                                             <span>Editar cuenta</span>
-
                                         </button>
+                                        {user.rol === 'admin' && (
+                                            <button
+                                                onClick={goToAdmin}
+                                                className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            >
+                                                <Settings className="w-4 h-4" />
+                                                <span>Panel Admin</span>
+                                            </button>
+                                        )}
                                         <button
                                             onClick={handleLogout}
                                             className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
