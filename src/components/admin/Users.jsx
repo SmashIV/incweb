@@ -1344,7 +1344,7 @@ const Users = () => {
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.phone?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesRole = selectedRole === '' || user.role === selectedRole;
+      const matchesRole = selectedRole === 'all' || selectedRole === '' || user.role === selectedRole;
       
       return matchesSearch && matchesRole;
     });
