@@ -22,6 +22,7 @@ import Legal from './pages/Legal'
 import TerminoCondiciones from './pages/TerminoCondiciones'
 import PoliticaPrivacidad from './pages/PoliticaPrivacidad'
 import PageEditAccount from './pages/PageEditAccount'
+import Stores from './pages/Stores'
 
 // Admin Components
 import Dashboard from './components/admin/Dashboard'
@@ -64,6 +65,7 @@ function App() {
             <Route path='/TerminoCondiciones' element={<TerminoCondiciones/>}/>
             <Route path='/PoliticaPrivacidad' element={<PoliticaPrivacidad/>}/>
             <Route path='/edit-account' element={<PageEditAccount/>}/>
+            <Route path='/stores' element={<Stores/>}/>
             
             <Route path='/admin' element={
               <ProtectedAdminRoute>

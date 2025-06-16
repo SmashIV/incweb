@@ -79,7 +79,7 @@ function Header() {
                 <div className='cursor-pointer hover:text-gray-500' onClick={() => setSearchOpen(true)}>
                     <Search/>
                 </div>
-                <div className='cursor-pointer hover:text-gray-500'>
+                <div className='cursor-pointer hover:text-gray-500' onClick={() => navigate("/stores")}>
                     <LocateFixed/>
                 </div>
                 <div className="relative">

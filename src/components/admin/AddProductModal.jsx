@@ -266,7 +266,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
                                             <img
                                                 src={image.preview}
                                                 alt={`Preview ${index + 1}`}
-                                                className="w-full h-32 object-cover rounded-lg"
+                                                className="w-full h-full object-cover rounded-lg"
                                             />
                                             <button
                                                 type="button"

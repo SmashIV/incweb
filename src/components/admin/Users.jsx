@@ -359,14 +359,11 @@ const EditUserModal = ({ isOpen, onClose, user, onUpdate }) => {
     }
 
     try {
-        // 1. Primero actualizamos en Firebase
         await updateEmail(currentUser, userData.email);
         
-        // 2. Obtenemos el nuevo token después de actualizar el email
         const newToken = await currentUser.getIdToken(true);
         localStorage.setItem('token', newToken);
 
-        // 3. Actualizamos en la base de datos con el nuevo token
         const response = await axios.put(
             `http://localhost:3000/admin/update_user/${user.firebase_uid}`,
             {
@@ -383,7 +380,7 @@ const EditUserModal = ({ isOpen, onClose, user, onUpdate }) => {
 
         if (response.status === 200) {
             setSuccess('Credenciales actualizadas correctamente');
-            onUpdate(); // Actualizamos la lista de usuarios
+            onUpdate();
         }
     } catch (error) {
         console.error('Error al actualizar credenciales:', error);
@@ -411,7 +408,6 @@ const EditUserModal = ({ isOpen, onClose, user, onUpdate }) => {
     setError('');
     setSuccess('');
 
-    // Validaciones
     const dniError = validateDNI(userData.dni);
     const phoneError = validatePhone(userData.telefono);
     const birthDateError = validateBirthDate(userData.fecha_nacimiento);
@@ -439,7 +435,7 @@ const EditUserModal = ({ isOpen, onClose, user, onUpdate }) => {
 
       if (response.status === 200) {
         setSuccess('Datos personales actualizados correctamente');
-        onUpdate(); // Actualizamos la lista de usuarios
+        onUpdate(); 
       }
     } catch (error) {
       console.error('Error al actualizar datos personales:', error);
