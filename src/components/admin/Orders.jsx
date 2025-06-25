@@ -6,30 +6,25 @@ import {
   Clock, 
   CheckCircle, 
   AlertCircle, 
-  Eye, 
-  RefreshCw, 
   Search, 
-  Filter, 
   Grid, 
   List, 
   User, 
   MapPin, 
   CreditCard, 
-  Truck, 
   X, 
-  Edit, 
-  Trash2, 
-  AlertTriangle, 
   CheckCircle as CheckCircleIcon,
   Calendar,
   DollarSign,
   ShoppingBag,
-  BarChart3
+  BarChart3,
+  Airplay
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { auth } from '../../config/firebase';
 
-const OrderDetailModal = ({ isOpen, onClose, order }) => {
+const OrderDetailModal = ({ isOpen, onClose, order, userInfo, loadingUserInfo }) => {
   if (!order) return null;
 
   const getStatusColor = (status) => {
@@ -117,6 +112,7 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
                         <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">FIREBASE_UID</label>
                         <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.firebase_uid || 'N/A'}</p>
                       </div>
+                      
                       <div>
                         <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">EMAIL</label>
                         <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.customer_email || 'N/A'}</p>
@@ -257,6 +253,45 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
   );
 };
 
+const getUserInfo = async (firebase_uid) => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      console.warn('No hay usuario autenticado');
+      return firebase_uid;
+    }
+
+    const idToken = await currentUser.getIdToken();
+    
+    const response = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/incalpacautp/accounts:lookup?key=${import.meta.env.VITE_FIREBASE_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`
+      },
+      body: JSON.stringify({
+        localId: firebase_uid
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener datos de Firebase');
+    }
+
+    const data = await response.json();
+    
+    if (data.users && data.users.length > 0) {
+      const user = data.users[0];
+      return user.displayName || user.email || firebase_uid;
+    } else {
+      return firebase_uid;
+    }
+  } catch (error) {
+    console.error('Error al obtener información del usuario:', error);
+    return firebase_uid;
+  }
+};
+
 const Orders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -266,6 +301,8 @@ const Orders = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [userInfo, setUserInfo] = useState({}); // Cache de información de usuarios
+  const [loadingUserInfo, setLoadingUserInfo] = useState(false);
 
   const statuses = [
     { id: 'all', label: 'TODOS' },
@@ -281,7 +318,9 @@ const Orders = () => {
       const response = await axios.get('http://localhost:3000/admin/orders', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Campos de las órdenes:', response.data[0]);
       setOrders(response.data);
+      await loadUserInfo(response.data);
     } catch (error) {
       console.error('Error al cargar pedidos:', error);
       setOrders([]);
@@ -290,7 +329,6 @@ const Orders = () => {
     }
   };
 
-  // Cargar detalles completos de un pedido
   const fetchOrderDetails = async (orderId) => {
     try {
       const token = localStorage.getItem('token');
@@ -308,7 +346,6 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  // Calcular estadísticas
   const stats = useMemo(() => {
     const total = orders.length;
     const pendientes = orders.filter(order => order.estado === 'pendiente').length;
@@ -327,19 +364,19 @@ const Orders = () => {
     };
   }, [orders]);
 
-  // Filtrar pedidos
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
       const matchesSearch = 
         (order.id_pedido?.toString() || '').includes(searchTerm.toLowerCase()) ||
         (order.firebase_uid?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (userInfo[order.firebase_uid]?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (order.total_pago?.toString() || '').includes(searchTerm.toLowerCase());
       
       const matchesStatus = selectedStatus === 'all' || order.estado === selectedStatus;
       
       return matchesSearch && matchesStatus;
     });
-  }, [orders, searchTerm, selectedStatus]);
+  }, [orders, searchTerm, selectedStatus, userInfo]);
 
   const handleViewOrder = async (order) => {
     const orderDetails = await fetchOrderDetails(order.id_pedido);
@@ -372,6 +409,30 @@ const Orders = () => {
     return `S/ ${parseFloat(amount).toFixed(2)}`;
   };
 
+  // Función para cargar información de todos los usuarios
+  const loadUserInfo = async (ordersList) => {
+    setLoadingUserInfo(true);
+    try {
+      const uniqueUids = [...new Set(ordersList.map(order => order.firebase_uid).filter(Boolean))];
+      const userInfoPromises = uniqueUids.map(async (uid) => {
+        const info = await getUserInfo(uid);
+        return { uid, info };
+      });
+      
+      const userInfoResults = await Promise.all(userInfoPromises);
+      const userInfoMap = {};
+      userInfoResults.forEach(({ uid, info }) => {
+        userInfoMap[uid] = info;
+      });
+      
+      setUserInfo(userInfoMap);
+    } catch (error) {
+      console.error('Error al cargar información de usuarios:', error);
+    } finally {
+      setLoadingUserInfo(false);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -395,7 +456,6 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -539,7 +599,13 @@ const Orders = () => {
                 </div>
                 <div>
                   <h3 className="font-mono font-bold text-gray-900">#{order.id_pedido}</h3>
-                  <p className="text-sm font-mono text-gray-600">{order.firebase_uid || 'N/A'}</p>
+                  <p className="text-sm font-mono text-gray-600">
+                    {loadingUserInfo ? (
+                      <span className="text-gray-400">Cargando...</span>
+                    ) : (
+                      userInfo[order.firebase_uid] || order.firebase_uid || 'N/A'
+                    )}
+                  </p>
                 </div>
               </div>
               
@@ -557,8 +623,8 @@ const Orders = () => {
                   <span>{order.cantidad_total_productos || 0} {(order.cantidad_total_productos || 0) === 1 ? 'ITEM' : 'ITEMS'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm font-mono text-gray-600">
-                  <User size={16} />
-                  <span>{order.firebase_uid || 'NO_UID'}</span>
+                  <Airplay size={16} />
+                  <span>{order.platform || 'N/A'}</span>
                 </div>
               </div>
               
@@ -613,7 +679,13 @@ const Orders = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-mono font-bold text-gray-900">{order.firebase_uid || 'N/A'}</div>
+                        <div className="text-sm font-mono font-bold text-gray-900">
+                          {loadingUserInfo ? (
+                            <span className="text-gray-400">Cargando...</span>
+                          ) : (
+                            userInfo[order.firebase_uid] || order.firebase_uid || 'N/A'
+                          )}
+                        </div>
                         <div className="text-sm font-mono text-gray-500">{order.cantidad_total_productos || 0} items</div>
                       </div>
                     </td>
@@ -661,6 +733,8 @@ const Orders = () => {
           setSelectedOrder(null);
         }}
         order={selectedOrder}
+        userInfo={userInfo}
+        loadingUserInfo={loadingUserInfo}
       />
     </div>
   );
