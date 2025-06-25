@@ -114,7 +114,6 @@ const AdminSidebar = () => {
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={() => {
-                // TODO: Implement logout functionality
               }}
               className="flex items-center gap-3 w-full px-3 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >

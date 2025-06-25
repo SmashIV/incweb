@@ -50,18 +50,18 @@ export function AuthProvider({children}) {
     }, []);
 
     const login = async (email, password) => {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        return userCredential.user;
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            return userCredential.user;
     };
 
     const register = async (email, password) => {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        return userCredential.user;
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            return userCredential.user;
     };
 
     const loginWithGoogle = async () => {
-        const userCredential = await signInWithPopup(auth, googleProvider);
-        return userCredential.user;
+            const userCredential = await signInWithPopup(auth, googleProvider);
+            return userCredential.user;
     };
 
     const logout = async () => {

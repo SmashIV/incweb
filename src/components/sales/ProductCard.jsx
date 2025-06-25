@@ -13,13 +13,25 @@ function ProductCard({ genero }) {
             .then(res => {
                 let prods = res.data;
                 if (genero) {
-                    prods = prods.filter(p => p.genero === genero);
+                    prods = prods.filter(p => {
+                        const generoProducto = p.genero?.toLowerCase().trim();
+                        const generoBuscado = genero.toLowerCase().trim();
+                        
+                        if (generoProducto === "unisex") {
+                            return generoBuscado === "hombre" || generoBuscado === "mujer";
+                        }
+                        
+                        return generoProducto === generoBuscado;
+                    });
                 }
                 setProducts(prods);
                 setFilteredProducts(prods);
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
+            .catch((error) => {
+                console.error("Error al cargar productos:", error);
+                setLoading(false);
+            });
     }, [genero]);
 
     function handleFilterChange(filters) {

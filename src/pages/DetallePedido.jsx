@@ -300,6 +300,9 @@ function DetallePedido() {
         if (!distrito) newErrors.distrito = "Requerido";
         if (!form.codigoPostal) newErrors.codigoPostal = "Requerido";
       }
+      if (!selectedDireccion && (!form.direccion || !departamento || !provincia || !distrito || !form.codigoPostal)) {
+        newErrors.general = "Debes completar la información de dirección para continuar";
+      }
     }
     setStepErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -371,7 +374,7 @@ function DetallePedido() {
     try {
       await axios.post(
         'http://localhost:3000/payment/save_direccion_pedido',
-        { id_direccion },
+        { direccion_id: id_direccion },
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (e) {
@@ -462,6 +465,11 @@ function DetallePedido() {
                             <div className="text-[#C19A6B] text-xs font-medium">
                               Talla: {items[currentIndex].talla}
                             </div>
+                            {items[currentIndex].color && (
+                              <div className="text-[#C19A6B] text-xs font-medium">
+                                Color: {items[currentIndex].color}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -698,6 +706,8 @@ function DetallePedido() {
 
             {step === 2 && (
               <MetodoPago 
+                total={total}
+                id_direccion={selectedDireccion?.id_direccion || null}
                 form={form} 
                 errors={stepErrors} 
                 handleChange={handleChange}

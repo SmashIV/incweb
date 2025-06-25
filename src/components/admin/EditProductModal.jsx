@@ -19,70 +19,90 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen && product) {
-            console.log('Producto recibido:', product);
-            setFormData({
-                nombre: product.nombre,
-                descripcion: product.descripcion,
-                precio_unitario: product.precio_unitario,
-                stock: product.stock,
-                estado: product.estado,
-                genero: product.genero,
-                id_categoria: product.categoria.id.toString(),
-            });
+    // Función para resetear el formulario
+    const resetForm = () => {
+        setFormData({
+            nombre: '',
+            descripcion: '',
+            precio_unitario: '',
+            stock: '',
+            estado: 'disponible',
+            genero: 'unisex',
+            id_categoria: '',
+        });
+        setImages([]);
+    };
 
-            setImages([{ preview: `/${product.imagen}`, path: product.imagen }]);
-            
-            const fetchAdditionalImages = async () => {
-                try {
-                    const token = localStorage.getItem('token');
-                    const productId = product.id;
-                    console.log('ID del producto:', productId);
-                    
-                    if (!productId) {
-                        console.error('ID del producto no encontrado');
-                        return;
-                    }
+    // Función para cargar datos del producto
+    const loadProductData = (product) => {
+        if (!product) return;
+        
+        console.log('Producto recibido:', product);
+        setFormData({
+            nombre: product.nombre || '',
+            descripcion: product.descripcion || '',
+            precio_unitario: product.precio_unitario || '',
+            stock: product.stock || '',
+            estado: product.estado || 'disponible',
+            genero: product.genero || 'unisex',
+            id_categoria: product.categoria?.id?.toString() || '',
+        });
 
-                    const response = await axios.get(
-                        `http://localhost:3000/admin/get_producto_imagenes/${productId}`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        }
-                    );
-                    
-                    console.log('Respuesta del servidor:', response.data);
-                    
-                    if (response.data && Array.isArray(response.data)) {
-                        const additionalImages = response.data.map(img => ({
-                            preview: `/${img.url_imagen}`,
-                            path: img.url_imagen
-                        }));
-                        
-                        setImages(prevImages => [...prevImages, ...additionalImages]);
-                    }
-                } catch (error) {
-                    console.error('Error al cargar imágenes adicionales:', error);
-                    console.error('Detalles del error:', {
-                        status: error.response?.status,
-                        data: error.response?.data,
-                        config: error.config
-                    });
+        setImages([{ preview: `/${product.imagen}`, path: product.imagen }]);
+        
+        const fetchAdditionalImages = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const productId = product.id;
+                console.log('ID del producto:', productId);
+                
+                if (!productId) {
+                    console.error('ID del producto no encontrado');
+                    return;
                 }
-            };
 
-            fetchAdditionalImages();
-        }
-    }, [isOpen, product]);
+                const response = await axios.get(
+                    `http://localhost:3000/admin/get_producto_imagenes/${productId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+                
+                console.log('Respuesta del servidor:', response.data);
+                
+                if (response.data && Array.isArray(response.data)) {
+                    const additionalImages = response.data.map(img => ({
+                        preview: `/${img.url_imagen}`,
+                        path: img.url_imagen
+                    }));
+                    
+                    setImages(prevImages => [...prevImages, ...additionalImages]);
+                }
+            } catch (error) {
+                console.error('Error al cargar imágenes adicionales:', error);
+                console.error('Detalles del error:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    config: error.config
+                });
+            }
+        };
+
+        fetchAdditionalImages();
+    };
 
     useEffect(() => {
         if (isOpen) {
+            if (product) {
+                loadProductData(product);
+            } else {
+                resetForm();
+            }
             fetchCategories();
         }
-    }, [isOpen]);
+    }, [isOpen, product]);
 
     const fetchCategories = async () => {
         try {
@@ -173,6 +193,7 @@ const EditProductModal = ({ isOpen, onClose, onSubmit, product }) => {
             );
 
             await onSubmit(response.data);
+            resetForm();
             onClose();
         } catch (error) {
             console.error('Error al actualizar el producto:', error);

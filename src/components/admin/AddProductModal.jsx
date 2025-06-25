@@ -19,8 +19,23 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Función para resetear el formulario
+    const resetForm = () => {
+        setFormData({
+            nombre: '',
+            descripcion: '',
+            precio_unitario: '',
+            stock: '',
+            estado: 'disponible',
+            genero: 'unisex',
+            id_categoria: '',
+        });
+        setImages([]);
+    };
+
     useEffect(() => {
         if (isOpen) {
+            resetForm(); // Resetear formulario cuando se abre
             fetchCategories();
         }
     }, [isOpen]);
@@ -109,6 +124,7 @@ const AddProductModal = ({ isOpen, onClose, onSubmit }) => {
             );
 
             await onSubmit(response.data);
+            resetForm(); // Resetear después de crear exitosamente
             onClose();
         } catch (error) {
             console.error('Error al crear el producto:', error);

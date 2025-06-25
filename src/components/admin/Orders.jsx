@@ -1,74 +1,521 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Package, Clock, CheckCircle, AlertCircle, Eye, RefreshCw } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  ShoppingCart, 
+  Package, 
+  Clock, 
+  CheckCircle, 
+  AlertCircle, 
+  Eye, 
+  RefreshCw, 
+  Search, 
+  Filter, 
+  Grid, 
+  List, 
+  User, 
+  MapPin, 
+  CreditCard, 
+  Truck, 
+  X, 
+  Edit, 
+  Trash2, 
+  AlertTriangle, 
+  CheckCircle as CheckCircleIcon,
+  Calendar,
+  DollarSign,
+  ShoppingBag,
+  BarChart3
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 
-const Orders = () => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
+const OrderDetailModal = ({ isOpen, onClose, order }) => {
+  if (!order) return null;
 
-  useEffect(() => {
-    // TODO: Fetch orders from API
-    setLoading(false);
-  }, []);
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pendiente': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'pagado': return 'bg-green-50 text-green-700 border-green-200';
+      case 'cancelado': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
 
-  const stats = [
-    { title: 'Total Pedidos', value: '1,234', icon: ShoppingCart, color: 'bg-blue-100 text-blue-600' },
-    { title: 'Pendientes', value: '45', icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
-    { title: 'Completados', value: '1,189', icon: CheckCircle, color: 'bg-green-100 text-green-600' },
-    { title: 'Cancelados', value: '12', icon: AlertCircle, color: 'bg-red-100 text-red-600' },
-  ];
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pendiente': return <Clock size={20} />;
+      case 'pagado': return <CheckCircle size={20} />;
+      case 'cancelado': return <AlertCircle size={20} />;
+      default: return <Package size={20} />;
+    }
+  };
 
-  const filters = [
-    { id: 'all', label: 'Todos' },
-    { id: 'pending', label: 'Pendientes' },
-    { id: 'completed', label: 'Completados' },
-    { id: 'cancelled', label: 'Cancelados' },
-  ];
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount) => {
+    if (!amount) return 'S/ 0.00';
+    return `S/ ${parseFloat(amount).toFixed(2)}`;
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Gestión de Pedidos</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat, index) => (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
           <motion.div
-            key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-lg shadow p-4"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative border border-gray-200"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-[20rem] font-mono text-gray-50 select-none">ORD</span>
+            </div>
+            <div className="relative z-10 p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900">
+                    <Package size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-mono font-bold text-gray-900">
+                      ORDER_DETAILS: #{order.id_pedido}
+                    </h2>
+                    <p className="text-sm font-mono text-gray-500">Terminal v1.0.0</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+                >
+                  <X size={24} className="text-gray-600" />
+                </button>
               </div>
-              <div className={`p-3 rounded-full ${stat.color}`}>
-                <stat.icon size={24} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-mono font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <User size={20} className="text-gray-600" />
+                      CUSTOMER_INFO
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">FIREBASE_UID</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.firebase_uid || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">EMAIL</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.customer_email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">PHONE</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.customer_phone || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-mono font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <MapPin size={20} className="text-gray-600" />
+                      SHIPPING_ADDRESS
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">ADDRESS</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.shipping_address || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">DISTRICT</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.shipping_district || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">CITY</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.shipping_city || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">POSTAL_CODE</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.shipping_postal_code || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-mono font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <ShoppingBag size={20} className="text-gray-600" />
+                      ORDER_STATUS
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 text-sm font-mono font-bold rounded-lg border ${getStatusColor(order.estado)}`}>
+                          {order.estado?.toUpperCase() || 'N/A'}
+                        </span>
+                        {getStatusIcon(order.estado)}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">PAYMENT_METHOD</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.payment_method || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">ORDER_DATE</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{formatDate(order.fecha_orden)}</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">TOTAL_ITEMS</label>
+                        <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.cantidad_total_productos || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-mono font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <DollarSign size={20} className="text-gray-600" />
+                      PRODUCTS
+                    </h3>
+                    <div className="space-y-3">
+                      {(order.products || []).map((item, index) => (
+                        <div key={index} className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                          <div>
+                            <p className="text-sm font-mono text-gray-900">{item.product_name || 'N/A'}</p>
+                            <p className="text-xs font-mono text-gray-500">QTY: {item.cantidad || 0} | SIZE: {item.talla || 'N/A'}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-mono text-gray-900">{formatCurrency(item.precio)}</p>
+                            <p className="text-xs font-mono text-gray-500">TOTAL: {formatCurrency(item.precio * item.cantidad)}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="border-t border-gray-200 pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-mono font-bold text-gray-900">TOTAL</span>
+                          <span className="text-lg font-mono font-bold text-gray-900">{formatCurrency(order.total_pago)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {order.payment_info && (
+                <div className="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-lg font-mono font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <CreditCard size={20} className="text-gray-600" />
+                    PAYMENT_INFO
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">PAYMENT_STATUS</label>
+                      <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.payment_info.estado_pago || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">PAYMENT_METHOD</label>
+                      <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.payment_info.mp_payment_method_id || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">PAYMENT_DATE</label>
+                      <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{formatDate(order.payment_info.fecha_pago)}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-gray-500 mb-1 uppercase tracking-wide">MP_PAYMENT_ID</label>
+                      <p className="text-sm font-mono text-gray-900 bg-white p-2 rounded border border-gray-200">{order.payment_info.mp_payment_id || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-8 flex justify-end gap-4">
+                <button
+                  onClick={onClose}
+                  className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors font-mono font-bold border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  CLOSE
+                </button>
+                <button className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-mono font-bold border border-gray-700">
+                  UPDATE_STATUS
+                </button>
               </div>
             </div>
           </motion.div>
-        ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const Orders = () => {
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [viewMode, setViewMode] = useState('grid');
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const statuses = [
+    { id: 'all', label: 'TODOS' },
+    { id: 'pendiente', label: 'PENDIENTES' },
+    { id: 'pagado', label: 'PAGADOS' },
+    { id: 'cancelado', label: 'CANCELADOS' },
+  ];
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:3000/admin/orders', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOrders(response.data);
+    } catch (error) {
+      console.error('Error al cargar pedidos:', error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar detalles completos de un pedido
+  const fetchOrderDetails = async (orderId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:3000/admin/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al cargar detalles del pedido:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    const total = orders.length;
+    const pendientes = orders.filter(order => order.estado === 'pendiente').length;
+    const pagados = orders.filter(order => order.estado === 'pagado').length;
+    const cancelados = orders.filter(order => order.estado === 'cancelado').length;
+    const totalRevenue = orders
+      .filter(order => order.estado === 'pagado')
+      .reduce((sum, order) => sum + parseFloat(order.total_pago), 0);
+
+    return {
+      total,
+      pendientes,
+      pagados,
+      cancelados,
+      totalRevenue
+    };
+  }, [orders]);
+
+  // Filtrar pedidos
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      const matchesSearch = 
+        (order.id_pedido?.toString() || '').includes(searchTerm.toLowerCase()) ||
+        (order.firebase_uid?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (order.total_pago?.toString() || '').includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = selectedStatus === 'all' || order.estado === selectedStatus;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [orders, searchTerm, selectedStatus]);
+
+  const handleViewOrder = async (order) => {
+    const orderDetails = await fetchOrderDetails(order.id_pedido);
+    setSelectedOrder(orderDetails);
+    setIsDetailModalOpen(true);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pendiente': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'pagado': return 'bg-green-50 text-green-700 border-green-200';
+      case 'cancelado': return 'bg-red-50 text-red-700 border-red-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount) => {
+    if (!amount) return 'S/ 0.00';
+    return `S/ ${parseFloat(amount).toFixed(2)}`;
+  };
+
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900">
+            <ShoppingCart size={28} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-mono font-bold text-gray-900">ORDERS_MANAGEMENT</h1>
+            <p className="text-sm font-mono text-gray-500">Terminal v1.0.0 - System Status: ONLINE</p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => navigate('/admin/analytics')}
+            className="bg-gray-900 hover:bg-gray-800 text-white font-mono font-bold py-3 px-6 rounded-lg flex items-center gap-2 border border-gray-700 transition-colors"
+          >
+            <BarChart3 size={20} />
+            ANALYTICS
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex flex-wrap gap-2">
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === f.id
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+      {/* Estadísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-mono text-gray-500 uppercase tracking-wide">TOTAL_ORDERS</p>
+              <p className="text-3xl font-mono font-bold text-gray-900">{stats.total}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+              <ShoppingCart size={24} className="text-blue-600" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-mono text-gray-500 uppercase tracking-wide">PENDING</p>
+              <p className="text-3xl font-mono font-bold text-gray-900">{stats.pendientes}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+              <Clock size={24} className="text-yellow-600" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-mono text-gray-500 uppercase tracking-wide">COMPLETED</p>
+              <p className="text-3xl font-mono font-bold text-gray-900">{stats.pagados}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+              <CheckCircle size={24} className="text-green-600" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-mono text-gray-500 uppercase tracking-wide">REVENUE</p>
+              <p className="text-3xl font-mono font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
+              <DollarSign size={24} className="text-purple-600" />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="SEARCH: order_id, customer_name, tracking_number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 font-mono text-sm"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {statuses.map((status) => (
+              <button
+                key={status.id}
+                onClick={() => setSelectedStatus(status.id)}
+                className={`px-4 py-3 rounded-lg text-sm font-mono font-bold transition-colors border ${
+                  selectedStatus === status.id
+                    ? 'bg-gray-900 text-white border-gray-700'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200'
+                }`}
+              >
+                {status.label}
+              </button>
+            ))}
+            <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 border border-gray-200">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  viewMode === 'grid' ? 'bg-white shadow-sm border border-gray-200 scale-110' : ''
+                }`}
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid size={20} className="text-gray-600" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  viewMode === 'list' ? 'bg-white shadow-sm border border-gray-200 scale-110' : ''
+                }`}
+                onClick={() => setViewMode('list')}
+              >
+                <List size={20} className="text-gray-600" />
+              </motion.button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -76,59 +523,145 @@ const Orders = () => {
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order, index) => (
+      ) : viewMode === 'grid' ? (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredOrders.map((order, index) => (
             <motion.div
-              key={order.id}
+              key={`grid-${order.id}-${index}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-lg shadow overflow-hidden"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
             >
-              <div className="p-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gray-100 rounded-lg">
-                      <Package size={24} className="text-gray-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Pedido #{order.id}</h3>
-                      <p className="text-sm text-gray-600">{order.customer}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <p className="font-semibold text-gray-900">S/ {order.total}</p>
-                    <p className="text-sm text-gray-600">{order.date}</p>
-                  </div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                  <Package size={24} className="text-gray-600" />
                 </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.status === 'pagado' 
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {order.status}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {order.items} {order.items === 1 ? 'producto' : 'productos'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <Eye size={18} />
-                    </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <RefreshCw size={18} />
-                    </button>
-                  </div>
+                <div>
+                  <h3 className="font-mono font-bold text-gray-900">#{order.id_pedido}</h3>
+                  <p className="text-sm font-mono text-gray-600">{order.firebase_uid || 'N/A'}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center gap-2 text-sm font-mono text-gray-600">
+                  <Calendar size={16} />
+                  <span>{formatDate(order.fecha_orden)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-mono text-gray-600">
+                  <DollarSign size={16} />
+                  <span>{formatCurrency(order.total_pago)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-mono text-gray-600">
+                  <ShoppingBag size={16} />
+                  <span>{order.cantidad_total_productos || 0} {(order.cantidad_total_productos || 0) === 1 ? 'ITEM' : 'ITEMS'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-mono text-gray-600">
+                  <User size={16} />
+                  <span>{order.firebase_uid || 'NO_UID'}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className={`px-3 py-1 text-xs font-mono font-bold rounded-lg border ${getStatusColor(order.estado)}`}>
+                  {order.estado?.toUpperCase() || 'N/A'}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleViewOrder(order)}
+                    className="text-sm font-mono text-gray-600 hover:text-gray-900 font-bold"
+                  >
+                    [VIEW]
+                  </button>
+                  <button 
+                    className="text-blue-600 hover:text-blue-900 font-mono font-bold"
+                  >
+                    [EDIT]
+                  </button>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
+      ) : (
+        <div className="mt-6">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm border border-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">ORDER_ID</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">CUSTOMER</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">TOTAL</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">STATUS</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">DATE</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">PLATFORM</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredOrders.map((order, index) => (
+                  <tr key={`list-${order.id}-${index}`} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                          <Package size={16} className="text-gray-600" />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-mono font-bold text-gray-900">#{order.id_pedido}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-mono font-bold text-gray-900">{order.firebase_uid || 'N/A'}</div>
+                        <div className="text-sm font-mono text-gray-500">{order.cantidad_total_productos || 0} items</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-mono font-bold text-gray-900">{formatCurrency(order.total_pago)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 text-xs font-mono font-bold rounded-lg border ${getStatusColor(order.estado)}`}>
+                        {order.estado?.toUpperCase() || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-mono text-gray-900">{formatDate(order.fecha_orden)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-mono text-gray-900">{order.platform || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleViewOrder(order)}
+                          className="text-gray-600 hover:text-gray-900 font-mono font-bold"
+                        >
+                          [VIEW]
+                        </button>
+                        <button 
+                          className="text-blue-600 hover:text-blue-900 font-mono font-bold"
+                        >
+                          [EDIT]
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
+
+      <OrderDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedOrder(null);
+        }}
+        order={selectedOrder}
+      />
     </div>
   );
 };

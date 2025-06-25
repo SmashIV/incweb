@@ -12,7 +12,22 @@ const PAYMENT_STATES = {
   RETRY: 'retry'
 };
 
-function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
+function getPlatform() {
+  if (navigator.userAgentData && navigator.userAgentData.platform) {
+    return navigator.userAgentData.platform;
+  }
+  const ua = navigator.userAgent;
+  if (/windows phone/i.test(ua)) return "Windows Phone";
+  if (/win/i.test(ua)) return "Windows";
+  if (/android/i.test(ua)) return "Android";
+  if (/linux/i.test(ua)) return "Linux";
+  if (/iphone|ipad|ipod/i.test(ua)) return "iOS";
+  if (/mac/i.test(ua)) return "Mac";
+  return "unknown";
+}
+
+
+function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
     const { items, clearCart } = useCart();
     const [showCardBrick, setShowCardBrick] = useState(false);
     const paymentBrickRef = useRef(null);
@@ -23,9 +38,31 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
     const [retryCount, setRetryCount] = useState(0);
     const [paymentError, setPaymentError] = useState(null);
     const [sessionTimeout, setSessionTimeout] = useState(null);
-
+    const [userEmail, setUserEmail] = useState("");
     const MIN_AMOUNT = 5;
     const isAmountValid = total >= MIN_AMOUNT;
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setPaymentState(PAYMENT_STATES.EXPIRED);
+                return;
+            }
+            try {
+                const response = await axios.get(
+                    'http://localhost:3000/payment/get_usuario_datos',
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                if (response.data && response.data.email) {
+                    setUserEmail(response.data.email);
+                }
+            } catch (e) {
+                setUserEmail("");
+            }
+        };
+        fetchUserData();
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -33,98 +70,21 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
             setPaymentState(PAYMENT_STATES.EXPIRED);
             return;
         }
-
         const timeout = setTimeout(() => {
             setPaymentState(PAYMENT_STATES.EXPIRED);
         }, 30 * 60 * 1000); 
-
         setSessionTimeout(timeout);
         return () => clearTimeout(timeout);
     }, []);
-
-    const createPedido = async () => {
-        if (!isAmountValid) {
-            throw new Error(`El monto mínimo de compra es S/ ${MIN_AMOUNT}`);
-        }
-
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-        }
-
-        try {
-            const response = await axios.post(
-                'http://localhost:3000/payment/create_pedido',
-                {
-                    items: items.map(item => ({
-                        id_producto: item.id,
-                        cantidad: item.cantidad,
-                        precio: item.precio_unitario
-                    })),
-                    total_pago: total,
-                    codigo_cupon: promoCode || null
-                },
-                { 
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 10000 
-                }
-            );
-            return response.data.id_pedido;
-        } catch (error) {
-            if (error.response?.status === 401) {
-                throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-            }
-            throw new Error('Error al crear el pedido. Por favor, intenta nuevamente.');
-        }
-    };
-
-    const updatePedidoPago = async (id_pedido, paymentData) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
-        }
-
-        try {
-            await axios.post(
-                'http://localhost:3000/payment/update_pedido_pago',
-                {
-                    id_pedido,
-                    payment_data: paymentData
-                },
-                { 
-                    headers: { Authorization: `Bearer ${token}` },
-                    timeout: 10000
-                }
-            );
-        } catch (error) {
-            throw new Error('Error al actualizar el pago. Por favor, contacta a soporte.');
-        }
-    };
-
-    const handlePaymentRetry = () => {
-        setPaymentState(PAYMENT_STATES.RETRY);
-        setRetryCount(prev => prev + 1);
-        setPaymentError(null);
-    };
-
-    const handlePaymentCancel = () => {
-        setPaymentState(PAYMENT_STATES.IDLE);
-        setShowCardBrick(false);
-        if (paymentBrickRef.current) {
-            paymentBrickRef.current.innerHTML = "";
-        }
-    };
 
     useEffect(() => {
         if (showCardBrick && window.MercadoPago) {
             if (paymentBrickRef.current) {
                 paymentBrickRef.current.innerHTML = "";
             }
-
             const mp = new window.MercadoPago(import.meta.env.VITE_MP_PUBLIC_KEY, {
                 locale: 'es-PE'
             });
-
             mp.bricks().create("cardPayment", "paymentBrick_container", {
                 initialization: {
                     amount: total,
@@ -147,55 +107,75 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                     onSubmit: async (cardFormData) => {
                         try {
                             setPaymentState(PAYMENT_STATES.PROCESSING);
+                            const token = localStorage.getItem('token');
+                            if (!token) throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+                            
+                            const payload = {
+                                items: items.map(item => ({
+                                    id_producto: Number(item.id),
+                                    cantidad: Number(item.cantidad),
+                                    precio: Number(item.precio_unitario),
+                                    talla: item.talla || null
+                                })),
+                                total_pago: total,
+                                codigo_cupon: promoCode ? String(promoCode) : null,
+                                id_direccion: id_direccion,
+                                user_agent: navigator.userAgent,
+                                cantidad_total_productos: items.reduce((sum, item) => sum + item.cantidad, 0),
+                                colores_pedidos: items.map(item => item.color || 'sin_color'),
+                                tallas_pedidas: items.map(item => item.talla || 'sin_talla'),
+                                categorias_pedidas: items.map(item => item.categoria?.nombre || 'sin_categoria'),
+                                platform: getPlatform(),
+                                language: navigator.language || null,
+                                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+                                timezone_offset: new Date().getTimezoneOffset() || null
+                            };
                             
                             const createPedidoResponse = await axios.post(
                                 'http://localhost:3000/payment/create_pedido',
-                                {
-                                    items: items.map(item => ({
-                                        id_producto: item.id,
-                                        cantidad: item.cantidad,
-                                        precio: item.precio_unitario
-                                    })),
-                                    total_pago: total,
-                                    codigo_cupon: promoCode || null
-                                },
+                                payload,
                                 { 
-                                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                                    headers: { Authorization: `Bearer ${token}` },
                                     timeout: 10000
                                 }
                             );
-                            
                             const id_pedido = createPedidoResponse.data.id_pedido;
+                            
+                            const email = userEmail || cardFormData.payer?.email || cardFormData.email || 'usuario@example.com';
+                            console.log("Email para payment:", email);
+                            
+                            const validatedCardData = {
+                                ...cardFormData,
+                                payment_method_id: cardFormData.payment_method_id,
+                                issuer_id: cardFormData.issuer_id && !isNaN(cardFormData.issuer_id) ? cardFormData.issuer_id : null,
+                                transaction_amount: total,
+                                installments: Number(cardFormData.installments || 1),
+                                payer: {
+                                    email: email,
+                                    identification: cardFormData.payer?.identification || {
+                                        type: "DNI",
+                                        number: "12345678"
+                                    }
+                                }
+                            };
+                            if (!validatedCardData.issuer_id) {
+                                delete validatedCardData.issuer_id;
+                            }
                             
                             const paymentResponse = await axios.post(
                                 'http://localhost:3000/payment/process_payment',
                                 {
-                                    ...cardFormData,
+                                    ...validatedCardData,
                                     id_pedido,
-                                    transaction_amount: total,
-                                    email: userData?.email || cardFormData.email
+                                    email: email
                                 },
                                 { 
-                                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                                    headers: { Authorization: `Bearer ${token}` },
                                     timeout: 30000
                                 }
                             );
-                            
                             const data = paymentResponse.data;
-                            
                             if (data.status === 'approved') {
-                                await axios.post(
-                                    'http://localhost:3000/payment/update_pedido_pago',
-                                    {
-                                        id_pedido,
-                                        payment_data: data
-                                    },
-                                    { 
-                                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-                                        timeout: 10000
-                                    }
-                                );
-                                
                                 clearCart();
                                 setPaymentState(PAYMENT_STATES.SUCCESS);
                                 onPaymentSuccess(data);
@@ -204,6 +184,10 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                             }
                         } catch (error) {
                             console.error('Error en el proceso de pago:', error);
+                            if (error.response) {
+                                console.error('Error response:', error.response.data);
+                                console.error('Error status:', error.response.status);
+                            }
                             setPaymentError(error.message);
                             setPaymentState(PAYMENT_STATES.ERROR);
                             onPaymentError(error);
@@ -218,18 +202,17 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                 }
             });
         }
-    }, [showCardBrick, total, items, promoCode, retryCount]);
+    }, [showCardBrick, total, items, promoCode, retryCount, userEmail]);
 
+    // Promo code logic
     const handleApplyPromo = async (e) => {
         e.preventDefault();
         if (paymentState === PAYMENT_STATES.PROCESSING) return;
-
         const token = localStorage.getItem('token');
         if (!token) {
             setPromoError("Debes iniciar sesión para usar códigos promocionales");
             return;
         }
-
         try {
             const response = await axios.post(
                 'http://localhost:3000/payment/validate_cupon',
@@ -239,7 +222,6 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                     timeout: 5000
                 }
             );
-            
             if (response.data.valid) {
                 setPromoMessage(`¡Código aplicado! ${response.data.mensaje}`);
                 setPromoError("");
@@ -250,6 +232,19 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
         } catch (error) {
             setPromoMessage("");
             setPromoError("Error al validar el código promocional");
+        }
+    };
+
+    const handlePaymentRetry = () => {
+        setPaymentState(PAYMENT_STATES.RETRY);
+        setRetryCount(prev => prev + 1);
+        setPaymentError(null);
+    };
+    const handlePaymentCancel = () => {
+        setPaymentState(PAYMENT_STATES.IDLE);
+        setShowCardBrick(false);
+        if (paymentBrickRef.current) {
+            paymentBrickRef.current.innerHTML = "";
         }
     };
 
@@ -295,14 +290,12 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                 Selecciona tu método de pago preferido y completa los datos requeridos. 
                 El pago es 100% seguro y procesado por MercadoPago.
             </p>
-
             {!isAmountValid && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded">
                     El monto mínimo de compra es S/ {MIN_AMOUNT}
                 </div>
             )}
-
-            <form onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row gap-2 items-start sm:items-end mb-2">
+            <div onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row gap-2 items-start sm:items-end mb-2">
                 <div className="flex flex-col w-full sm:w-auto">
                     <label htmlFor="promo" className="text-xs font-semibold text-[#8B5C2A] mb-1">
                         Código de Promoción
@@ -318,21 +311,20 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                     />
                 </div>
                 <button
-                    type="submit"
+                    type="button"
+                    onClick={handleApplyPromo}
                     className="px-4 py-2 rounded bg-[#C19A6B] text-white font-semibold text-sm hover:bg-[#8B5C2A] transition-colors duration-200 disabled:opacity-50"
                     disabled={paymentState === PAYMENT_STATES.PROCESSING}
                 >
                     Aplicar
                 </button>
-            </form>
-
+            </div>
             {promoMessage && (
                 <div className="text-green-600 text-xs font-semibold mb-1">{promoMessage}</div>
             )}
             {promoError && (
                 <div className="text-red-500 text-xs font-semibold mb-1">{promoError}</div>
             )}
-
             <div className="flex flex-col gap-2 w-full">
                 <button
                     type="button"
@@ -351,7 +343,6 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                             : 'Pagar con Tarjeta (MercadoPago)'}
                     </span>
                 </button>
-
                 {showCardBrick && (
                     <div className="w-full mt-2">
                         <button
@@ -366,7 +357,6 @@ function MetodoPago({ total, onPaymentSuccess, onPaymentError }) {
                     </div>
                 )}
             </div>
-
             <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded text-xs mt-2">
                 <b>Advertencia:</b> No cierres ni recargues la página durante el proceso de pago. 
                 Si tienes problemas, comunícate con nuestro soporte.

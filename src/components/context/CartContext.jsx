@@ -20,7 +20,10 @@ const cartReducer = (state, action) => {
     case CartActionTypes.SET_CART: {
       const items = action.payload;
       const totalItems = items.reduce((sum, item) => sum + item.cantidad, 0);
-      const totalAmount = items.reduce((sum, item) => sum + (item.precio_unitario * item.cantidad), 0);
+      const totalAmount = items.reduce((sum, item) => {
+        const itemTotal = Number(item.precio_unitario) * Number(item.cantidad);
+        return Math.round((sum + itemTotal) * 100) / 100;
+      }, 0);
       return { items, totalItems, totalAmount };
     }
     case CartActionTypes.CLEAR_CART:

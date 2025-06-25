@@ -130,6 +130,9 @@ function CartPage() {
                                     <div className="col-span-2 truncate">
                                         <div className="font-medium text-gray-900">{item.nombre}</div>
                                         <div className="text-xs text-gray-400">Talla: {item.talla}</div>
+                                        {item.color && (
+                                            <div className="text-xs text-gray-400">Color: {item.color}</div>
+                                        )}
                                     </div>
                                     <div className="text-center">
                                         {discount[`${item.id}-${item.talla}`] ? (

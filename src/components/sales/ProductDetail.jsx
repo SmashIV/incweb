@@ -25,6 +25,13 @@ function ProductDetail() {
   const { addNotification } = useNotification();
   const { user } = useAuth();
 
+  // Función para determinar si el producto necesita selección de tallas
+  const needsSizeSelection = (product) => {
+    if (!product) return true;
+    // Los accesorios y productos de hogar no necesitan selección de tallas
+    return product.genero !== 'accesorios' && product.genero !== 'hogar';
+  };
+
   useEffect(() => {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'auto' });
@@ -37,6 +44,12 @@ function ProductDetail() {
       .then(res => {
         setProduct(res.data);
         if (res.data) {
+          // Configurar talla por defecto para accesorios y hogar
+          if (!needsSizeSelection(res.data)) {
+            setSelectedSize('M');
+            setShowSizes(false);
+          }
+          
           // Obtener las imágenes adicionales del producto
           const token = localStorage.getItem('token');
           axios.get(`http://localhost:3000/admin/get_producto_imagenes/${id}`, {
@@ -88,7 +101,7 @@ function ProductDetail() {
       addNotification('Debes iniciar sesión para agregar productos al carrito.', 'error');
       return;
     }
-    if (!selectedSize) {
+    if (needsSizeSelection(product) && !selectedSize) {
       setShowSizeError(true);
       setTimeout(() => setShowSizeError(false), 3000);
       return;
@@ -98,6 +111,8 @@ function ProductDetail() {
     setShowAddedToCart(true);
     setTimeout(() => setShowAddedToCart(false), 2000);
   };
+
+  const shouldShowSizes = needsSizeSelection(product) && showSizes;
 
   return (
     <div className="w-full bg-gray-50 flex items-start justify-center mb-10 pt-10">
@@ -130,7 +145,7 @@ function ProductDetail() {
               <p className="text-lg text-gray-700 mb-4">{product.descripcion}</p>
             </div>
             <AnimatePresence>
-              {!showSizes && (
+              {!shouldShowSizes && (
                 <motion.div
                   key="composicion-cuidado"
                   initial={{ opacity: 0, height: 0 }}
@@ -161,7 +176,7 @@ Como regla general, recomendamos no colgar este tipo de prenda.
               )}
             </AnimatePresence>
             <div className="flex flex-col gap-6 mt-6">
-              {!showSizes && (
+              {needsSizeSelection(product) && !showSizes && (
                 <motion.button
                   layout
                   className="px-6 py-3 bg-gray-100 text-black rounded-full font-semibold text-base shadow hover:bg-gray-200 transition w-fit mx-auto"
@@ -172,7 +187,7 @@ Como regla general, recomendamos no colgar este tipo de prenda.
                 </motion.button>
               )}
               <AnimatePresence>
-                {showSizes && (
+                {shouldShowSizes && (
                   <motion.div
                     layout
                     initial={{ height: 0, opacity: 0 }}
