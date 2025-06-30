@@ -18,7 +18,8 @@ import {
   DollarSign,
   ShoppingBag,
   BarChart3,
-  Airplay
+  Airplay,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -433,6 +434,28 @@ const Orders = () => {
     }
   };
 
+  const exportOrdersToCSV = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:3000/admin/orders/export-csv', {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `pedidos_incalpaca_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al exportar CSV:', error);
+      alert('Error al exportar el archivo CSV. Por favor, intenta nuevamente.');
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -446,6 +469,13 @@ const Orders = () => {
           </div>
         </div>
         <div className="flex gap-3">
+          <button 
+            onClick={exportOrdersToCSV}
+            className="bg-green-600 hover:bg-green-700 text-white font-mono font-bold py-3 px-6 rounded-lg flex items-center gap-2 border border-green-700 transition-colors"
+          >
+            <Download size={20} />
+            EXPORT_CSV
+          </button>
           <button 
             onClick={() => navigate('/admin/analytics')}
             className="bg-gray-900 hover:bg-gray-800 text-white font-mono font-bold py-3 px-6 rounded-lg flex items-center gap-2 border border-gray-700 transition-colors"

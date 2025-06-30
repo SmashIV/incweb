@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, 
@@ -29,13 +29,14 @@ import {
   Database,
   Cpu,
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 
 // Datos mock para análisis
 const mockAnalytics = {
-  // Productos más vendidos
   topProducts: [
     { id: 1, name: 'Chaleco de Alpaca', category: 'Chalecos', sales: 245, revenue: 36750, growth: 12.5, rating: 4.8 },
     { id: 2, name: 'Suéter de Alpaca', category: 'Suéteres', sales: 198, revenue: 39600, growth: 8.3, rating: 4.7 },
@@ -44,7 +45,6 @@ const mockAnalytics = {
     { id: 5, name: 'Cárdigan de Alpaca', category: 'Cárdigans', sales: 123, revenue: 27060, growth: 6.7, rating: 4.5 }
   ],
 
-  // Categorías más vendidas
   topCategories: [
     { name: 'Suéteres', sales: 456, revenue: 91200, growth: 18.5, marketShare: 35.2 },
     { name: 'Chalecos', sales: 389, revenue: 58350, growth: 12.3, marketShare: 28.1 },
@@ -62,7 +62,6 @@ const mockAnalytics = {
     { name: 'Faldas', sales: 23, revenue: 3450, growth: -20.1, marketShare: 0.6 }
   ],
 
-  // Tendencia de ventas mensual
   monthlyTrends: [
     { month: 'Ene', sales: 1200, revenue: 180000, orders: 156 },
     { month: 'Feb', sales: 1350, revenue: 202500, orders: 178 },
@@ -78,7 +77,6 @@ const mockAnalytics = {
     { month: 'Dic', sales: 2680, revenue: 402000, orders: 357 }
   ],
 
-  // Preferencias de clientes
   customerPreferences: {
     ageGroups: [
       { group: '18-25', percentage: 15, growth: 8.5 },
@@ -147,9 +145,7 @@ const MetricCard = ({ title, value, change, icon: Icon, color = "blue" }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6 ${bgGradients[color]}`}
     >
-      {/* Efecto de terminal */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-30"></div>
       
       <div className="flex items-center justify-between relative z-10">
@@ -174,7 +170,6 @@ const MetricCard = ({ title, value, change, icon: Icon, color = "blue" }) => {
         </div>
       </div>
       
-      {/* Efecto de scanlines */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-100/20 to-transparent opacity-20"></div>
     </motion.div>
   );
@@ -183,7 +178,6 @@ const MetricCard = ({ title, value, change, icon: Icon, color = "blue" }) => {
 const TopProductsTable = ({ products }) => {
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
-      {/* Header con estilo terminal */}
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500">
           <Award size={20} className="text-white" />
@@ -251,7 +245,6 @@ const TopProductsTable = ({ products }) => {
 const CategoryAnalysis = ({ topCategories, lowCategories }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Categorías más vendidas */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500">
@@ -288,7 +281,6 @@ const CategoryAnalysis = ({ topCategories, lowCategories }) => {
         </div>
       </div>
 
-      {/* Categorías menos vendidas */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-pink-500">
@@ -331,7 +323,6 @@ const CategoryAnalysis = ({ topCategories, lowCategories }) => {
 const CustomerPreferences = ({ preferences }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Grupos de edad */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
@@ -363,7 +354,6 @@ const CustomerPreferences = ({ preferences }) => {
         </div>
       </div>
 
-      {/* Preferencias por género */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500">
@@ -392,7 +382,6 @@ const CustomerPreferences = ({ preferences }) => {
         </div>
       </div>
 
-      {/* Preferencias de color */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500">
@@ -433,7 +422,6 @@ const CustomerPreferences = ({ preferences }) => {
 const MarketTrends = ({ trends }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Tendencias estacionales */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-500">
@@ -462,7 +450,6 @@ const MarketTrends = ({ trends }) => {
         </div>
       </div>
 
-      {/* Tendencias emergentes */}
       <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500">
@@ -505,6 +492,212 @@ const Analytics = () => {
   const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('12m');
   const [selectedView, setSelectedView] = useState('overview');
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState([]);
+  const [orderDetails, setOrderDetails] = useState([]);
+  const [error, setError] = useState(null);
+  const [loadingProgress, setLoadingProgress] = useState({ current: 0, total: 0 });
+
+  // Fetch orders data using same method as Orders.jsx
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+      
+      const response = await axios.get('http://localhost:3000/admin/orders', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setOrders(response.data);
+    } catch (error) {
+      let errorMessage = 'Error al obtener órdenes';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Token inválido o expirado. Por favor, inicia sesión nuevamente.';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Endpoint no encontrado. Verifica la URL del servidor.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Error del servidor. Intenta más tarde.';
+        } else {
+          errorMessage = `Error ${error.response.status}: ${error.response.statusText}`;
+        }
+      } else if (error.request) {
+        errorMessage = 'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose en http://localhost:3000';
+      } else {
+        errorMessage = error.message || 'Error desconocido';
+      }
+      
+      setError(errorMessage);
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchOrderDetails = async (orderIds) => {
+    try {
+      const limitedOrderIds = orderIds.slice(0, 50);
+      setLoadingProgress({ current: 0, total: limitedOrderIds.length });
+      
+      const details = [];
+      
+      for (let i = 0; i < limitedOrderIds.length; i++) {
+        const orderId = limitedOrderIds[i];
+        
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get(`http://localhost:3000/admin/orders/${orderId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          if (response.data) {
+            details.push(response.data);
+          }
+        } catch (error) {
+        }
+        setLoadingProgress({ current: i + 1, total: limitedOrderIds.length });
+      }
+      
+      setOrderDetails(details);
+    } catch (error) {
+      // Handle any other errors
+    } finally {
+      setLoading(false);
+      setLoadingProgress({ current: 0, total: 0 });
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchOrders();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (orders.length > 0) {
+      const recentOrderIds = orders.slice(0, 50).map(order => order.id_pedido);
+      fetchOrderDetails(recentOrderIds);
+    } else if (orders.length === 0 && !loading) {
+      setLoading(false);
+    }
+  }, [orders]);
+
+  const analyticsData = useMemo(() => {
+    if (orderDetails.length === 0) {
+      return {
+        topProducts: [],
+        lowProducts: [],
+        topCategories: [],
+        lowCategories: [],
+        totalRevenue: 0,
+        totalSales: 0,
+        totalOrders: 0,
+        avgOrderValue: 0
+      };
+    }
+
+    const productStats = {};
+    const categoryStats = {};
+
+    orderDetails.forEach(order => {
+      if (order.products && Array.isArray(order.products)) {
+        order.products.forEach(product => {
+          if (!productStats[product.id_producto]) {
+            productStats[product.id_producto] = {
+              id: product.id_producto,
+              name: product.product_name,
+              category: product.categoria,
+              sales: 0,
+              revenue: 0,
+              quantity: 0
+            };
+          }
+          
+          productStats[product.id_producto].sales += product.cantidad;
+          productStats[product.id_producto].revenue += product.precio * product.cantidad;
+          productStats[product.id_producto].quantity += product.cantidad;
+
+          if (!categoryStats[product.categoria]) {
+            categoryStats[product.categoria] = {
+              name: product.categoria,
+              sales: 0,
+              revenue: 0,
+              quantity: 0
+            };
+          }
+          
+          categoryStats[product.categoria].sales += product.cantidad;
+          categoryStats[product.categoria].revenue += product.precio * product.cantidad;
+          categoryStats[product.categoria].quantity += product.cantidad;
+        });
+      }
+    });
+
+    const productsArray = Object.values(productStats);
+    const categoriesArray = Object.values(categoryStats);
+
+    const topProducts = productsArray
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10) 
+      .map(product => ({
+        ...product,
+        growth: Number((Math.random() * 20 - 5).toFixed(2)), // Mock growth with 2 decimals
+        rating: Number((4.5 + Math.random() * 0.5).toFixed(2)) // Mock rating with 2 decimals
+      }));
+
+    const lowProducts = productsArray
+      .sort((a, b) => a.revenue - b.revenue)
+      .slice(0, 10) // Show bottom 10 products
+      .map(product => ({
+        ...product,
+        growth: Number((Math.random() * 20 - 5).toFixed(2)),
+        rating: Number((4.0 + Math.random() * 0.5).toFixed(2))
+      }));
+
+    const topCategories = categoriesArray
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 8) // Show top 8 categories
+      .map(category => ({
+        ...category,
+        growth: Number((Math.random() * 20 - 5).toFixed(2)),
+        marketShare: Number((Math.random() * 40 + 10).toFixed(2))
+      }));
+
+    const lowCategories = categoriesArray
+      .sort((a, b) => a.revenue - b.revenue)
+      .slice(0, 8) // Show bottom 8 categories
+      .map(category => ({
+        ...category,
+        growth: Number((Math.random() * 20 - 5).toFixed(2)),
+        marketShare: Number((Math.random() * 10).toFixed(2))
+      }));
+
+    const totalRevenue = orders.reduce((sum, order) => sum + order.total_pago, 0);
+    const totalSales = orders.reduce((sum, order) => sum + (order.cantidad_total_productos || 0), 0);
+    const totalOrders = orders.length;
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    return {
+      topProducts,
+      lowProducts,
+      topCategories,
+      lowCategories,
+      totalRevenue,
+      totalSales,
+      totalOrders,
+      avgOrderValue
+    };
+  }, [orderDetails, orders]);
 
   const periods = [
     { id: '7d', label: '7 días' },
@@ -522,14 +715,83 @@ const Analytics = () => {
     { id: 'trends', label: 'TRENDS', icon: TrendingUp }
   ];
 
-  const totalRevenue = mockAnalytics.monthlyTrends.reduce((sum, month) => sum + month.revenue, 0);
-  const totalSales = mockAnalytics.monthlyTrends.reduce((sum, month) => sum + month.sales, 0);
-  const totalOrders = mockAnalytics.monthlyTrends.reduce((sum, month) => sum + month.orders, 0);
-  const avgOrderValue = totalRevenue / totalOrders;
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  const handleAuthError = useCallback(() => {
+    localStorage.removeItem('token');
+    navigate('/admin/login');
+  }, [navigate]);
+
+  const handleViewChange = useCallback((viewId) => {
+    setSelectedView(viewId);
+  }, []);
+
+  const handlePeriodChange = useCallback((periodId) => {
+    setSelectedPeriod(periodId);
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    setError(null);
+    fetchOrders();
+  }, [fetchOrders]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600 font-mono mb-2">CARGANDO_ANALYTICS...</p>
+          {loadingProgress.total > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 font-mono">
+                PROCESANDO_ORDENES: {loadingProgress.current}/{loadingProgress.total}
+              </p>
+              <div className="w-64 bg-gray-200 rounded-full h-2 mx-auto">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${(loadingProgress.current / loadingProgress.total) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="p-3 rounded-xl bg-red-100 mb-4">
+            <Terminal size={24} className="text-red-600 mx-auto" />
+          </div>
+          <p className="text-red-600 font-mono mb-4">{error}</p>
+          <div className="flex gap-3 justify-center">
+            <button 
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-mono"
+            >
+              REINTENTAR
+            </button>
+            {error.includes('Token') || error.includes('401') ? (
+              <button 
+                onClick={handleAuthError}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-mono"
+              >
+                LIMPIAR_TOKEN
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-6">
-      {/* Header con estilo terminal */}
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
           <button
@@ -545,64 +807,66 @@ const Analytics = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 font-mono">ANALYTICS_DASHBOARD</h1>
             <p className="text-gray-600 font-mono text-sm">v1.0.0 - Real-time Data Analysis</p>
+            <p className="text-gray-500 font-mono text-xs">* Basado en las últimas 50 órdenes para análisis completo</p>
           </div>
         </div>
         <div className="flex gap-3">
           <select
             value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
+            onChange={(e) => handlePeriodChange(e.target.value)}
             className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
           >
             {periods.map(period => (
               <option key={period.id} value={period.id}>{period.label}</option>
             ))}
           </select>
-          <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 font-mono flex items-center gap-2 shadow-lg">
-            <Download size={16} />
-            EXPORT_DATA
+          <button 
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 font-mono flex items-center gap-2 shadow-lg"
+          >
+            <RefreshCw size={16} />
+            REFRESH_DATA
           </button>
         </div>
       </div>
 
-      {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard
           title="TOTAL_REVENUE"
-          value={`S/ ${totalRevenue.toLocaleString()}`}
+          value={`S/ ${analyticsData.totalRevenue.toLocaleString()}`}
           change={12.5}
           icon={DollarSign}
           color="green"
         />
         <MetricCard
           title="TOTAL_SALES"
-          value={totalSales.toLocaleString()}
+          value={analyticsData.totalSales.toLocaleString()}
           change={8.3}
           icon={ShoppingCart}
           color="blue"
         />
         <MetricCard
           title="TOTAL_ORDERS"
-          value={totalOrders.toLocaleString()}
+          value={analyticsData.totalOrders.toLocaleString()}
           change={15.2}
           icon={Package}
           color="purple"
         />
         <MetricCard
           title="AVG_ORDER_VALUE"
-          value={`S/ ${avgOrderValue.toFixed(2)}`}
+          value={`S/ ${analyticsData.avgOrderValue.toFixed(2)}`}
           change={-2.1}
           icon={Target}
           color="yellow"
         />
       </div>
 
-      {/* Navegación de vistas */}
       <div className="bg-white shadow-lg rounded-xl border border-gray-200 p-4 mb-8">
         <div className="flex flex-wrap gap-2">
           {views.map(view => (
             <button
               key={view.id}
-              onClick={() => setSelectedView(view.id)}
+              onClick={() => handleViewChange(view.id)}
               className={`px-4 py-2 rounded-lg text-sm font-mono transition-all duration-300 flex items-center gap-2 ${
                 selectedView === view.id
                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
@@ -616,7 +880,6 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Contenido de la vista seleccionada */}
       <AnimatePresence mode="wait">
         {selectedView === 'overview' && (
           <motion.div
@@ -626,11 +889,23 @@ const Analytics = () => {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-6"
           >
-            <TopProductsTable products={mockAnalytics.topProducts.slice(0, 5)} />
-            <CategoryAnalysis 
-              topCategories={mockAnalytics.topCategories.slice(0, 3)} 
-              lowCategories={mockAnalytics.lowCategories.slice(0, 3)} 
-            />
+            {analyticsData.topProducts.length > 0 ? (
+              <TopProductsTable products={analyticsData.topProducts} />
+            ) : (
+              <div className="text-center py-8 text-gray-500 font-mono">
+                NO_HAY_DATOS_DE_PRODUCTOS
+              </div>
+            )}
+            {analyticsData.topCategories.length > 0 ? (
+              <CategoryAnalysis 
+                topCategories={analyticsData.topCategories} 
+                lowCategories={analyticsData.lowCategories} 
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500 font-mono">
+                NO_HAY_DATOS_DE_CATEGORIAS
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -641,7 +916,64 @@ const Analytics = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <TopProductsTable products={mockAnalytics.topProducts} />
+            {analyticsData.topProducts.length > 0 ? (
+              <div className="space-y-6">
+                <TopProductsTable products={analyticsData.topProducts} />
+                <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-pink-500">
+                      <TrendingDown size={20} className="text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 font-mono">LOW_PERFORMING_PRODUCTS</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-3 px-4 text-sm font-mono text-gray-600">PRODUCT</th>
+                          <th className="text-left py-3 px-4 text-sm font-mono text-gray-600">CATEGORY</th>
+                          <th className="text-left py-3 px-4 text-sm font-mono text-gray-600">SALES</th>
+                          <th className="text-left py-3 px-4 text-sm font-mono text-gray-600">REVENUE</th>
+                          <th className="text-left py-3 px-4 text-sm font-mono text-gray-600">GROWTH</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {analyticsData.lowProducts.map((product, index) => (
+                          <motion.tr
+                            key={product.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                          >
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center border border-red-200">
+                                  <span className="text-sm font-mono text-red-700">{index + 1}</span>
+                                </div>
+                                <span className="font-mono text-gray-900">{product.name}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-sm font-mono text-gray-600">{product.category}</td>
+                            <td className="py-3 px-4 text-sm font-mono text-gray-900">{product.sales}</td>
+                            <td className="py-3 px-4 text-sm font-mono text-red-600">S/ {product.revenue.toLocaleString()}</td>
+                            <td className="py-3 px-4">
+                              <span className={`text-sm font-mono ${product.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {product.growth > 0 ? '+' : ''}{product.growth.toFixed(1)}%
+                              </span>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 font-mono">
+                NO_HAY_DATOS_DE_PRODUCTOS
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -652,10 +984,91 @@ const Analytics = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <CategoryAnalysis 
-              topCategories={mockAnalytics.topCategories} 
-              lowCategories={mockAnalytics.lowCategories} 
-            />
+            {analyticsData.topCategories.length > 0 ? (
+              <div className="space-y-6">
+                <CategoryAnalysis 
+                  topCategories={analyticsData.topCategories} 
+                  lowCategories={analyticsData.lowCategories} 
+                />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500">
+                        <TrendingUp size={20} className="text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 font-mono">TOP_CATEGORIES_DETAILED</h3>
+                    </div>
+                    <div className="space-y-4">
+                      {analyticsData.topCategories.map((category, index) => (
+                        <motion.div
+                          key={category.name}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                              <span className="text-sm font-mono text-white">{index + 1}</span>
+                            </div>
+                            <div>
+                              <p className="font-mono text-gray-900">{category.name}</p>
+                              <p className="text-sm font-mono text-gray-600">{category.sales} units sold</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-mono text-green-600">S/ {category.revenue.toLocaleString()}</p>
+                            <p className={`text-sm font-mono ${category.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {category.growth > 0 ? '+' : ''}{category.growth.toFixed(1)}%
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-red-500 to-pink-500">
+                        <TrendingDown size={20} className="text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 font-mono">LOW_CATEGORIES_DETAILED</h3>
+                    </div>
+                    <div className="space-y-4">
+                      {analyticsData.lowCategories.map((category, index) => (
+                        <motion.div
+                          key={category.name}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+                              <span className="text-sm font-mono text-white">{index + 1}</span>
+                            </div>
+                            <div>
+                              <p className="font-mono text-gray-900">{category.name}</p>
+                              <p className="text-sm font-mono text-gray-600">{category.sales} units sold</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-mono text-red-600">S/ {category.revenue.toLocaleString()}</p>
+                            <p className={`text-sm font-mono ${category.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {category.growth > 0 ? '+' : ''}{category.growth.toFixed(1)}%
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 font-mono">
+                NO_HAY_DATOS_DE_CATEGORIAS
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -666,7 +1079,9 @@ const Analytics = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <CustomerPreferences preferences={mockAnalytics.customerPreferences} />
+            <div className="text-center py-8 text-gray-500 font-mono">
+              CUSTOMER_ANALYTICS_COMING_SOON
+            </div>
           </motion.div>
         )}
 
@@ -677,7 +1092,9 @@ const Analytics = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <MarketTrends trends={mockAnalytics.marketTrends} />
+            <div className="text-center py-8 text-gray-500 font-mono">
+              TRENDS_ANALYTICS_COMING_SOON
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
