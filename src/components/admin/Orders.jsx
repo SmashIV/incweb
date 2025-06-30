@@ -320,6 +320,8 @@ const Orders = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Campos de las órdenes:', response.data[0]);
+      console.log('Total orders from backend:', response.data.length);
+      console.log('Orders data:', response.data);
       setOrders(response.data);
       await loadUserInfo(response.data);
     } catch (error) {
