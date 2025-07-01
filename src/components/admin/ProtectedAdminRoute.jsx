@@ -4,9 +4,9 @@ import { useAuth } from '../context/AuthContext';
 const ProtectedAdminRoute = ({ children }) => {
     const { user } = useAuth();
 
-    if (!user || user.rol !== 'admin') {
+   {/* if (!user || user.rol !== 'admin') {
         return <Navigate to="/" replace />;
-    }
+    }*/}
 
     return children;
 };

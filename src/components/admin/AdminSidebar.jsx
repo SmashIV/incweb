@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { href, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Package,
@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react';
 import logo from '../../assets/INCALPACA.webp';
+import { icon } from 'leaflet';
 
 const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -55,6 +56,7 @@ const AdminSidebar = () => {
       icon: MessageSquare,
       exact: false
     },
+    ,
   ];
 
   const isActive = (path, exact = false) => {

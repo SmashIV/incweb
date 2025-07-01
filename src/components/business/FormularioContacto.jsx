@@ -14,7 +14,7 @@ function FormularioContacto (){
         </div>
 
         <div className="md:w-1/2 flex justify-center items-center p-8 bg-gray-100">
-            <form method="post" className="w-full max-w-md space-y-4">
+            <form add react-dropzoneorm method="post" className="w-full max-w-md space-y-4">
                 <div>
                     <label  htmlFor="nombre" className="block text-gray-800 font-semibold mb-1">Nombre:</label>
                     <input type="text" name="nombre" id="nombre" placeholder="Ingresa tu nombre" required className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"/>
