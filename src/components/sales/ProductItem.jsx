@@ -3,7 +3,7 @@ import ProductModal from './ProductModal';
 import { EyeClosed, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-function ProductItem({ item }) {
+function ProductItem({ item, children }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
     const [showSizeError, setShowSizeError] = useState(false);
@@ -41,7 +41,9 @@ function ProductItem({ item }) {
                         </h3>
                         <p className="mt-1 text-sm text-gray-500">{item.nombre}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">S/.{item.precio_unitario}</p>
+                    {children ? children : (
+                        <p className="text-sm font-medium text-gray-900">S/.{item.precio_unitario}</p>
+                    )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {['XS', 'S', 'M', 'L', 'XL'].map((size) => (

@@ -3,6 +3,7 @@ import {motion} from 'framer-motion';
 import { useModal } from '../context/ModalContext';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart } from 'lucide-react';
+import axios from 'axios';
 
 export default function ProductModal({ item, onClose }) {
     const { setModalOpen } = useModal();
@@ -13,11 +14,121 @@ export default function ProductModal({ item, onClose }) {
     const sizes = ['XS', 'S', 'M', 'L', 'XL'];
     const [success, setSuccess] = useState(false);
     const [authError, setAuthError] = useState(false);
+    const [promoInfo, setPromoInfo] = useState(null);
+    const [precioConDescuento, setPrecioConDescuento] = useState(null);
 
     useEffect(() => {
       setModalOpen(true);
       return () => setModalOpen(false);
     }, [setModalOpen]);
+
+    useEffect(() => {
+      if (!item) {
+        setPromoInfo(null);
+        setPrecioConDescuento(null);
+        return;
+      }
+      if (item.genero === 'accesorios' || item.genero === 'hogar') {
+        // Solo promo por color
+        if (item.color) {
+          const token = localStorage.getItem('token');
+          axios.get(`http://localhost:3000/promociones/por-color?tcolor=${encodeURIComponent(item.color)}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          })
+          .then(resColor => {
+            const dataColor = resColor.data;
+            let precioColor = null;
+            if (dataColor && dataColor.hasPromo && dataColor.color_objetivo === item.color) {
+              precioColor = item.precio_unitario;
+              if (dataColor.descuento_porcentaje) {
+                precioColor = precioColor * (1 - dataColor.descuento_porcentaje / 100);
+              } else if (dataColor.descuento_fijo) {
+                precioColor = precioColor - dataColor.descuento_fijo;
+              }
+              precioColor = Math.round(precioColor * 100) / 100;
+              setPromoInfo([{ tipo: 'color', data: dataColor }]);
+              setPrecioConDescuento(precioColor !== item.precio_unitario ? precioColor : null);
+            } else {
+              setPromoInfo(null);
+              setPrecioConDescuento(null);
+            }
+          })
+          .catch(() => {
+            setPromoInfo(null);
+            setPrecioConDescuento(null);
+          });
+        } else {
+          setPromoInfo(null);
+          setPrecioConDescuento(null);
+        }
+        return;
+      }
+      if (!selectedSize) {
+        setPromoInfo(null);
+        setPrecioConDescuento(null);
+        return;
+      }
+      const token = localStorage.getItem('token');
+      // Consultar promo por talla
+      const tallaPromise = axios.get(`http://localhost:3000/promociones/por-talla?talla=${selectedSize}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      // Consultar promo por color
+      const colorPromise = item.color ? axios.get(`http://localhost:3000/promociones/por-color?tcolor=${encodeURIComponent(item.color)}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      }) : Promise.resolve({ data: { hasPromo: false } });
+      Promise.all([tallaPromise, colorPromise])
+        .then(([resTalla, resColor]) => {
+          const dataTalla = resTalla.data;
+          const dataColor = resColor.data;
+          let precioTalla = null;
+          let precioColor = null;
+          if (dataTalla && dataTalla.hasPromo && dataTalla.talla_objetivo === selectedSize) {
+            precioTalla = item.precio_unitario;
+            if (dataTalla.descuento_porcentaje) {
+              precioTalla = precioTalla * (1 - dataTalla.descuento_porcentaje / 100);
+            } else if (dataTalla.descuento_fijo) {
+              precioTalla = precioTalla - dataTalla.descuento_fijo;
+            }
+          }
+          if (dataColor && dataColor.hasPromo && dataColor.color_objetivo === item.color) {
+            precioColor = item.precio_unitario;
+            if (dataColor.descuento_porcentaje) {
+              precioColor = precioColor * (1 - dataColor.descuento_porcentaje / 100);
+            } else if (dataColor.descuento_fijo) {
+              precioColor = precioColor - dataColor.descuento_fijo;
+            }
+          }
+          let precioFinal = item.precio_unitario;
+          let badges = [];
+          if (precioTalla !== null && precioColor !== null) {
+            if (precioTalla < precioColor) {
+              precioFinal = precioTalla;
+              badges.push({ tipo: 'talla', data: dataTalla });
+            } else if (precioColor < precioTalla) {
+              precioFinal = precioColor;
+              badges.push({ tipo: 'color', data: dataColor });
+            } else {
+              precioFinal = precioTalla; // ambos iguales
+              badges.push({ tipo: 'talla', data: dataTalla });
+              badges.push({ tipo: 'color', data: dataColor });
+            }
+          } else if (precioTalla !== null) {
+            precioFinal = precioTalla;
+            badges.push({ tipo: 'talla', data: dataTalla });
+          } else if (precioColor !== null) {
+            precioFinal = precioColor;
+            badges.push({ tipo: 'color', data: dataColor });
+          }
+          precioFinal = Math.round(precioFinal * 100) / 100;
+          setPromoInfo(badges);
+          setPrecioConDescuento(precioFinal !== item.precio_unitario ? precioFinal : null);
+        })
+        .catch(() => {
+          setPromoInfo(null);
+          setPrecioConDescuento(null);
+        });
+    }, [item, selectedSize]);
 
     const handleAddToCart = async () => {
         if (!selectedSize) {
@@ -100,7 +211,21 @@ export default function ProductModal({ item, onClose }) {
                     <div className="space-y-6">
                         <WaveText text={item.nombre} />
                         <p className="text-gray-600 text-lg">{item.categoria?.nombre}</p>
-                        <p className="text-4xl font-bold text-emerald-600">S/.{item.precio_unitario}</p>
+                        <p className="text-4xl font-bold text-emerald-600">
+                            {precioConDescuento !== null && precioConDescuento < item.precio_unitario ? (
+                                <>
+                                    <span className="line-through text-gray-400 mr-2 text-lg">S/.{item.precio_unitario}</span>
+                                    <span className="text-green-600 font-semibold text-2xl">S/.{precioConDescuento.toFixed(2)}</span>
+                                    {promoInfo && promoInfo.map((badge, idx) => (
+                                        <span key={idx} className={`ml-2 px-2 py-1 rounded text-xs font-semibold ${badge.tipo === 'talla' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                            {badge.tipo === 'talla' ? (badge.data.titulo || `Promo talla ${badge.data.talla_objetivo}`) : (badge.data.titulo || `Promo color ${badge.data.color_objetivo}`)}
+                                        </span>
+                                    ))}
+                                </>
+                            ) : (
+                                <span className="font-semibold text-gray-600 text-2xl">S/.{item.precio_unitario}</span>
+                            )}
+                        </p>
                         <div className='space-y-3'>
                             <h3 className='text-xl font-semibold'>Talla</h3>
                             <div className='flex gap-3'>

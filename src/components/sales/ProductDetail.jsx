@@ -25,10 +25,11 @@ function ProductDetail() {
   const { addNotification } = useNotification();
   const { user } = useAuth();
 
-  // Función para determinar si el producto necesita selección de tallas
+  const [promoInfo, setPromoInfo] = useState(null);
+  const [precioConDescuento, setPrecioConDescuento] = useState(null);
+
   const needsSizeSelection = (product) => {
     if (!product) return true;
-    // Los accesorios y productos de hogar no necesitan selección de tallas
     return product.genero !== 'accesorios' && product.genero !== 'hogar';
   };
 
@@ -44,13 +45,11 @@ function ProductDetail() {
       .then(res => {
         setProduct(res.data);
         if (res.data) {
-          // Configurar talla por defecto para accesorios y hogar
           if (!needsSizeSelection(res.data)) {
             setSelectedSize('M');
             setShowSizes(false);
           }
           
-          // Obtener las imágenes adicionales del producto
           const token = localStorage.getItem('token');
           axios.get(`http://localhost:3000/admin/get_producto_imagenes/${id}`, {
             headers: {
@@ -59,14 +58,12 @@ function ProductDetail() {
             }
           })
             .then(imgsRes => {
-              // La imagen principal viene del producto y las adicionales del endpoint
               const allImages = [res.data.imagen, ...imgsRes.data.map(img => img.url_imagen)];
               setImages(allImages);
               setSelectedImage(allImages[0]);
             })
             .catch(err => {
               console.error('Error al cargar imágenes adicionales:', err);
-              // Si hay error, usar solo la imagen principal
               setImages([res.data.imagen]);
               setSelectedImage(res.data.imagen);
             });
@@ -83,7 +80,105 @@ function ProductDetail() {
       });
   }, [id]);
 
-  // Si aún está cargando o no hay producto, muestra loading (Medida temporal hasta que se implemente una anim de carga apropiada)
+  useEffect(() => {
+    if (!product) {
+      setPromoInfo(null);
+      setPrecioConDescuento(null);
+      return;
+    }
+    const token = localStorage.getItem('token');
+    if (!needsSizeSelection(product)) {
+      if (product.color) {
+        axios.get(`http://localhost:3000/promociones/por-color?tcolor=${encodeURIComponent(product.color)}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
+        .then(resColor => {
+          const dataColor = resColor.data;
+          let precioColor = null;
+          if (dataColor && dataColor.hasPromo && dataColor.color_objetivo === product.color) {
+            precioColor = product.precio_unitario;
+            if (dataColor.descuento_porcentaje) {
+              precioColor = precioColor * (1 - dataColor.descuento_porcentaje / 100);
+            } else if (dataColor.descuento_fijo) {
+              precioColor = precioColor - dataColor.descuento_fijo;
+            }
+            precioColor = Math.round(precioColor * 100) / 100;
+            setPromoInfo([{ tipo: 'color', data: dataColor }]);
+            setPrecioConDescuento(precioColor !== product.precio_unitario ? precioColor : null);
+          } else {
+            setPromoInfo(null);
+            setPrecioConDescuento(null);
+          }
+        })
+        .catch(() => {
+          setPromoInfo(null);
+          setPrecioConDescuento(null);
+        });
+      } else {
+        setPromoInfo(null);
+        setPrecioConDescuento(null);
+      }
+      return;
+    }
+    const tallaPromise = axios.get(`http://localhost:3000/promociones/por-talla?talla=${selectedSize}`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+    const colorPromise = product.color ? axios.get(`http://localhost:3000/promociones/por-color?tcolor=${encodeURIComponent(product.color)}`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    }) : Promise.resolve({ data: { hasPromo: false } });
+    Promise.all([tallaPromise, colorPromise])
+      .then(([resTalla, resColor]) => {
+        const dataTalla = resTalla.data;
+        const dataColor = resColor.data;
+        let precioTalla = null;
+        let precioColor = null;
+        if (dataTalla && dataTalla.hasPromo && dataTalla.talla_objetivo === selectedSize) {
+          precioTalla = product.precio_unitario;
+          if (dataTalla.descuento_porcentaje) {
+            precioTalla = precioTalla * (1 - dataTalla.descuento_porcentaje / 100);
+          } else if (dataTalla.descuento_fijo) {
+            precioTalla = precioTalla - dataTalla.descuento_fijo;
+          }
+        }
+        if (dataColor && dataColor.hasPromo && dataColor.color_objetivo === product.color) {
+          precioColor = product.precio_unitario;
+          if (dataColor.descuento_porcentaje) {
+            precioColor = precioColor * (1 - dataColor.descuento_porcentaje / 100);
+          } else if (dataColor.descuento_fijo) {
+            precioColor = precioColor - dataColor.descuento_fijo;
+          }
+        }
+        let precioFinal = product.precio_unitario;
+        let badges = [];
+        if (precioTalla !== null && precioColor !== null) {
+          if (precioTalla < precioColor) {
+            precioFinal = precioTalla;
+            badges.push({ tipo: 'talla', data: dataTalla });
+          } else if (precioColor < precioTalla) {
+            precioFinal = precioColor;
+            badges.push({ tipo: 'color', data: dataColor });
+          } else {
+            precioFinal = precioTalla; // ambos iguales
+            badges.push({ tipo: 'talla', data: dataTalla });
+            badges.push({ tipo: 'color', data: dataColor });
+          }
+        } else if (precioTalla !== null) {
+          precioFinal = precioTalla;
+          badges.push({ tipo: 'talla', data: dataTalla });
+        } else if (precioColor !== null) {
+          precioFinal = precioColor;
+          badges.push({ tipo: 'color', data: dataColor });
+        }
+        precioFinal = Math.round(precioFinal * 100) / 100;
+        setPromoInfo(badges);
+        setPrecioConDescuento(precioFinal !== product.precio_unitario ? precioFinal : null);
+      })
+      .catch(() => {
+        setPromoInfo(null);
+        setPrecioConDescuento(null);
+      });
+  }, [product, selectedSize]);
+
   if (loading || !product) {
     return <div className="text-center py-20">Cargando producto...</div>;
   }
@@ -139,7 +234,21 @@ function ProductDetail() {
         <div className="flex-1 flex flex-col gap-8 justify-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.nombre}</h1>
-            <p className="text-2xl font-bold text-black mb-6">S/. {product.precio_unitario}</p>
+            <p className="text-2xl font-bold text-black mb-6">
+              {precioConDescuento !== null && precioConDescuento < product.precio_unitario ? (
+                <>
+                  <span className="line-through text-gray-400 mr-2 text-lg">S/. {product.precio_unitario}</span>
+                  <span className="text-green-600 font-semibold text-xl">S/. {precioConDescuento.toFixed(2)}</span>
+                  {promoInfo && promoInfo.map((badge, idx) => (
+                    <span key={idx} className={`ml-2 px-2 py-1 rounded text-xs font-semibold ${badge.tipo === 'talla' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {badge.tipo === 'talla' ? (badge.data.titulo || `Promo talla ${badge.data.talla_objetivo}`) : (badge.data.titulo || `Promo color ${badge.data.color_objetivo}`)}
+                    </span>
+                  ))}
+                </>
+              ) : (
+                <span className="font-semibold text-gray-600 text-xl">S/. {product.precio_unitario}</span>
+              )}
+            </p>
             <hr className="my-8 border-gray-300" />
             <div>
               <p className="text-lg text-gray-700 mb-4">{product.descripcion}</p>

@@ -43,7 +43,7 @@ function removeAccents(str) {
 function DetallePedido() {
   const { items, totalAmount } = useCart();
   const shipping = items.length === 0 ? 0 : 2;
-  const subtotal = items.reduce((sum, item) => sum + item.precio_unitario * item.cantidad, 0);
+  const subtotal = items.reduce((sum, item) => (sum + (item.precio_final ?? item.precio_unitario) * item.cantidad), 0);
   const total = subtotal + shipping;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -500,16 +500,16 @@ function DetallePedido() {
                 <h3 className="font-bold text-sm mb-2 text-[#8B5C2A]">Resumen del Pedido</h3>
                 <div className="flex justify-between text-[#8B5C2A] font-medium text-xs mb-0.5">
                   <span>Subtotal</span>
-                  <span>S/ {subtotal}</span>
+                  <span>S/ {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[#8B5C2A] text-xs mb-0.5">
                   <span>Envío</span>
-                  <span>S/ {shipping}</span>
+                  <span>S/ {shipping.toFixed(2)}</span>
                 </div>
                 <hr className="my-1 border-[#C19A6B]" />
                 <div className="flex justify-between text-base font-bold text-[#8B5C2A]">
                   <span>Total</span>
-                  <span>S/ {total}</span>
+                  <span>S/ {total.toFixed(2)}</span>
                 </div>
               </div>
             </>
@@ -771,15 +771,15 @@ function DetallePedido() {
                   <div className="flex flex-wrap gap-4 border-t border-[#C19A6B] pt-3 mt-2">
                     <div className="flex-1 min-w-[120px]">
                       <div className="text-xs text-[#C19A6B] font-semibold mb-1">Subtotal</div>
-                      <div className="text-[#8B5C2A]">S/ {subtotal}</div>
+                      <div className="text-[#8B5C2A]">S/ {subtotal.toFixed(2)}</div>
                     </div>
                     <div className="flex-1 min-w-[120px]">
                       <div className="text-xs text-[#C19A6B] font-semibold mb-1">Envío</div>
-                      <div className="text-[#8B5C2A]">S/ {shipping}</div>
+                      <div className="text-[#8B5C2A]">S/ {shipping.toFixed(2)}</div>
                     </div>
                     <div className="flex-1 min-w-[120px]">
                       <div className="text-xs text-[#C19A6B] font-semibold mb-1">Total</div>
-                      <div className="font-bold text-[#8B5C2A] text-lg">S/ {total}</div>
+                      <div className="font-bold text-[#8B5C2A] text-lg">S/ {total.toFixed(2)}</div>
                     </div>
                   </div>
                 </div>

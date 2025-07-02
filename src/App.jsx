@@ -34,7 +34,6 @@ import Complaints from './components/admin/Complaints'
 import AdminLayout from './components/admin/AdminLayout'
 import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute'
 import Analytics from './components/admin/Analytics'
-import CreateCupoOferta from './components/CuponOferta/CreateCupoOferta'
 
 function App() {
   const location = useLocation();
@@ -91,7 +90,7 @@ function App() {
             }/>
             <Route path='/admin/coupons' element={
               <ProtectedAdminRoute>
-                <AdminLayout><Coupons/><CreateCupoOferta/></AdminLayout>
+                <AdminLayout><Coupons/></AdminLayout>
               </ProtectedAdminRoute>
             }/>
             <Route path='/admin/complaints' element={
