@@ -150,23 +150,22 @@ function ProductDetail() {
         }
         let precioFinal = product.precio_unitario;
         let badges = [];
-        if (precioTalla !== null && precioColor !== null) {
-          if (precioTalla < precioColor) {
-            precioFinal = precioTalla;
-            badges.push({ tipo: 'talla', data: dataTalla });
-          } else if (precioColor < precioTalla) {
-            precioFinal = precioColor;
-            badges.push({ tipo: 'color', data: dataColor });
-          } else {
-            precioFinal = precioTalla; // ambos iguales
-            badges.push({ tipo: 'talla', data: dataTalla });
-            badges.push({ tipo: 'color', data: dataColor });
-          }
-        } else if (precioTalla !== null) {
+        
+        // Aplicar ambas promociones de forma acumulativa
+        if (precioTalla !== null) {
           precioFinal = precioTalla;
           badges.push({ tipo: 'talla', data: dataTalla });
-        } else if (precioColor !== null) {
-          precioFinal = precioColor;
+        }
+        
+        if (precioColor !== null) {
+          // Aplicar la promoción de color sobre el precio ya descontado por talla
+          let precioConColor = precioFinal;
+          if (dataColor.descuento_porcentaje) {
+            precioConColor = precioConColor * (1 - dataColor.descuento_porcentaje / 100);
+          } else if (dataColor.descuento_fijo) {
+            precioConColor = precioConColor - dataColor.descuento_fijo;
+          }
+          precioFinal = Math.max(precioConColor, 0); // Evitar precios negativos
           badges.push({ tipo: 'color', data: dataColor });
         }
         precioFinal = Math.round(precioFinal * 100) / 100;

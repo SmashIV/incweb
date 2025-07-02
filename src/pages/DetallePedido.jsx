@@ -215,9 +215,19 @@ function DetallePedido() {
         codigoPostal: selectedDireccion.codigo_postal || '',
         es_principal: !!selectedDireccion.es_principal,
       }));
+      
+      // Autocompletado secuencial: primero departamento
       setDepartamento(selectedDireccion.departamento || '');
-      setProvincia(selectedDireccion.provincia || '');
-      setDistrito(selectedDireccion.distrito || '');
+      
+      // Después de 100ms, autocompletar provincia
+      setTimeout(() => {
+        setProvincia(selectedDireccion.provincia || '');
+      }, 100);
+      
+      // Después de 200ms, autocompletar distrito
+      setTimeout(() => {
+        setDistrito(selectedDireccion.distrito || '');
+      }, 200);
     }
   }, [selectedDireccion]);
 
@@ -390,7 +400,13 @@ function DetallePedido() {
     setPaymentStatus('success');
     // Redirigir a página de confirmación después de 2 segundos
     setTimeout(() => {
-      window.location.href = `/confirmacion/${data.id_pedido}`;
+      if (data && data.id_pedido) {
+        window.location.href = `/confirmacion/${data.id_pedido}`;
+      } else {
+        console.error('No se recibió id_pedido en la respuesta de pago');
+        // Fallback: redirigir al inicio
+        window.location.href = '/';
+      }
     }, 2000);
   };
 

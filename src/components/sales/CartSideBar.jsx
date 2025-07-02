@@ -120,7 +120,6 @@ export default function CartSideBar({ open, onClose }) {
   const { items, totalAmount, removeFromCart, updateQuantity } = useCart();
   const navigate = useNavigate();
 
-  // Calcular subtotal con descuentos centralizados
   const subtotal = items.reduce((sum, item) => {
     const price = item.precio_final ?? item.precio_unitario;
     return sum + price * item.cantidad;

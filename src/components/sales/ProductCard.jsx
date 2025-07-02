@@ -83,14 +83,12 @@ function ProductCard({ genero }) {
                         if (promo && promo.descuento_porcentaje) {
                             precioConDescuento = Math.round(item.precio_unitario * (1 - promo.descuento_porcentaje / 100) * 100) / 100;
                         }
-                        // Log de depuración por producto
                         console.log('Producto:', item.nombre, '| Color:', item.color, '| Promo:', promo, '| Título promo:', tituloPromo);
                         return (
                             <div key={item.id} className="relative">
-                                {/* Badge discreto */}
                                 {promo && (
                                     <span className="absolute top-2 right-2 bg-yellow-100 text-yellow-700 rounded px-2 py-0.5 text-xs font-semibold shadow-sm z-10">
-                                        -{promo.descuento_porcentaje}% color promo{tituloPromo ? `: ${tituloPromo}` : ''}
+                                        -{promo.descuento_porcentaje}% Descuento por color
                                     </span>
                                 )}
                                 <div className="h-full">
@@ -99,7 +97,6 @@ function ProductCard({ genero }) {
                                         tienePromoColor={!!promo}
                                         descuentoColor={promo ? promo.descuento_porcentaje : null}
                                     >
-                                        {/* Render precio con descuento de forma discreta */}
                                         {promo && precioConDescuento !== null && precioConDescuento < item.precio_unitario ? (
                                             <div className="flex flex-col items-start mt-2">
                                                 <span className="text-xs text-gray-400 line-through">S/. {item.precio_unitario}</span>

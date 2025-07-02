@@ -16,6 +16,7 @@ import CartPage from './pages/CartPage'
 import SearchResults from './pages/SearchResults'
 import Reclamaciones from './pages/Reclamaciones'
 import DetallePedido from './pages/DetallePedido'
+import OrderConfirmation from './pages/OrderConfirmation'
 import PoliticaSeguridad from './pages/PoliticaSeguridad'
 import PoliticaEnvio from './pages/PoliticaEnvio'
 import Legal from './pages/Legal'
@@ -60,6 +61,7 @@ function App() {
             <Route path="/search" element={<SearchResults />} />
             <Route path='/Reclamaciones' element={<Reclamaciones/>}/>
             <Route path='/cart/detalle-pedido' element={<DetallePedido/>} />
+            <Route path='/confirmacion/:id_pedido' element={<OrderConfirmation/>} />
             <Route path='/PoliticaSeguridad' element={<PoliticaSeguridad/>}/>
             <Route path='/PoliticaEnvio' element={<PoliticaEnvio/>}/>
             <Route path='/Legal' element={<Legal/>}/>

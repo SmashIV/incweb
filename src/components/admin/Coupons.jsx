@@ -233,7 +233,6 @@ const EditPromotionModal = ({ isOpen, onClose, promotion, onUpdate, editPromotio
                     />
                   </div>
 
-                  {/* Campos condicionales según el tipo de aplicación */}
                   {promotionData.tipo_aplicacion === 'categoria' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
@@ -854,8 +853,6 @@ const Coupons = () => {
           </motion.div>
         ))}
       </div>
-
-      {/* Tabs */}
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
@@ -889,10 +886,8 @@ const Coupons = () => {
         </div>
       </div>
 
-      {/* Cupones Tab */}
       {activeTab === 'coupons' && (
         <div className="space-y-6">
-          {/* Search and Filter */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -925,7 +920,6 @@ const Coupons = () => {
             </div>
           </div>
 
-          {/* Create Coupon Form */}
           {showCouponForm && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -1039,7 +1033,6 @@ const Coupons = () => {
             </motion.div>
           )}
 
-          {/* Coupons List */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Cupones Existentes</h3>
@@ -1142,10 +1135,8 @@ const Coupons = () => {
         </div>
       )}
 
-      {/* Promotions Tab */}
       {activeTab === 'promotions' && (
         <div className="space-y-6">
-          {/* Create Promotion Form */}
           {showPromotionForm && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -1289,7 +1280,6 @@ const Coupons = () => {
             </motion.div>
           )}
 
-          {/* Promotions List */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Promociones de Temporada</h3>
@@ -1384,7 +1374,6 @@ const Coupons = () => {
         </div>
       )}
 
-      {/* Modal de Edición de Promoción */}
       {editingPromotion && (
         <EditPromotionModal
           isOpen={!!editingPromotion}

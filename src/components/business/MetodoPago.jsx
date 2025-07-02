@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from 'axios';
 import { useCart } from "../context/CartContext";
 
-// Estilos CSS personalizados para los componentes de descuento
 const discountStyles = `
   .discount-glow {
     box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
@@ -61,7 +60,6 @@ function getPlatform() {
   return "unknown";
 }
 
-// Componente de resumen de pago profesional
 const PaymentSummary = ({ total, totalConDescuento, isMastercard, mastercardPromo, items }) => {
   const subtotal = items.reduce((sum, item) => {
     const price = item.precio_final ?? item.precio_unitario;
@@ -157,7 +155,6 @@ const PaymentSummary = ({ total, totalConDescuento, isMastercard, mastercardProm
   );
 };
 
-// Componente de notificación de descuento Mastercard
 const MastercardDiscountNotification = ({ isMastercard, mastercardPromo, descuentoAplicado }) => {
   if (!isMastercard || !mastercardPromo || descuentoAplicado <= 0) return null;
 
@@ -240,7 +237,6 @@ const PromotionsBanner = ({ mastercardPromo }) => {
   );
 };
 
-// Componente de indicador de estado de descuento
 const DiscountStatusIndicator = ({ isMastercard, mastercardPromo, isProcessing }) => {
   if (!isMastercard || !mastercardPromo) return null;
 
@@ -283,7 +279,6 @@ const DiscountStatusIndicator = ({ isMastercard, mastercardPromo, isProcessing }
   );
 };
 
-// Componente de confirmación de descuento aplicado
 const DiscountConfirmation = ({ isMastercard, mastercardPromo, descuentoAplicado }) => {
   if (!isMastercard || !mastercardPromo || descuentoAplicado <= 0) return null;
 
@@ -343,7 +338,6 @@ function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
     const MIN_AMOUNT = 5;
     const isAmountValid = totalConDescuento >= MIN_AMOUNT;
 
-    // Nuevo: key para forzar reinicio del Brick
     const brickKey = `${isMastercard ? 'mastercard' : 'otro'}-${totalConDescuento}`;
 
     useEffect(() => {
@@ -530,7 +524,24 @@ function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
                             if (data.status === 'approved') {
                                 clearCart();
                                 setPaymentState(PAYMENT_STATES.SUCCESS);
-                                onPaymentSuccess(data);
+                                
+                                axios.post(
+                                    'http://localhost:3000/payment/send_order_email',
+                                    { id_pedido: id_pedido },
+                                    { 
+                                        headers: { Authorization: `Bearer ${token}` },
+                                        timeout: 10000
+                                    }
+                                ).then(() => {
+                                    console.log('Email de confirmación enviado exitosamente');
+                                }).catch((emailError) => {
+                                    console.error('Error al enviar email de confirmación:', emailError);
+                                });
+                                
+                                onPaymentSuccess({
+                                    ...data,
+                                    id_pedido: id_pedido
+                                });
                             } else {
                                 throw new Error('Pago no aprobado');
                             }
@@ -556,7 +567,6 @@ function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
         }
     }, [showCardBrick, totalConDescuento, isMastercard, items, promoCode, retryCount, userEmail, mastercardPromo]);
 
-    // Promo code logic
     const handleApplyPromo = async (e) => {
         e.preventDefault();
         if (paymentState === PAYMENT_STATES.PROCESSING) return;
@@ -635,7 +645,6 @@ function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
         }
     };
 
-    // Calcular descuento aplicado para la notificación
     const subtotal = items.reduce((sum, item) => {
         const price = item.precio_final ?? item.precio_unitario;
         return sum + price * item.cantidad;
@@ -646,19 +655,12 @@ function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
 
     return (
         <div className="w-full flex flex-col gap-4 mt-2">
-            {/* Estilos CSS personalizados */}
             <style>{discountStyles}</style>
             
-            {/* Notificación de descuento Mastercard */}
             <MastercardDiscountNotification 
                 isMastercard={isMastercard}
                 mastercardPromo={mastercardPromo}
                 descuentoAplicado={descuentoAplicado}
-            />
-            
-            {/* Banner informativo de promociones */}
-            <PromotionsBanner 
-                mastercardPromo={mastercardPromo}
             />
             
             <h3 className="font-bold text-lg text-[#8B5C2A] mb-1">Método de Pago</h3>
@@ -667,69 +669,26 @@ function MetodoPago({ total, id_direccion, onPaymentSuccess, onPaymentError }) {
                 El pago es 100% seguro y procesado por MercadoPago.
             </p>
             
-            {/* Banner informativo de promociones */}
             <PromotionsBanner 
                 mastercardPromo={mastercardPromo}
             />
             
-            {/* Indicador de estado de descuento */}
             <DiscountStatusIndicator 
                 isMastercard={isMastercard}
                 mastercardPromo={mastercardPromo}
                 isProcessing={paymentState === PAYMENT_STATES.PROCESSING}
             />
             
-            {/* Confirmación de descuento aplicado */}
             <DiscountConfirmation 
                 isMastercard={isMastercard}
                 mastercardPromo={mastercardPromo}
                 descuentoAplicado={descuentoAplicado}
-            />
-            
-            {/* Resumen de pago profesional */}
-            <PaymentSummary 
-                total={total}
-                totalConDescuento={totalConDescuento}
-                isMastercard={isMastercard}
-                mastercardPromo={mastercardPromo}
-                items={items}
             />
 
             {!isAmountValid && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded">
                     El monto mínimo de compra es S/ {MIN_AMOUNT}
                 </div>
-            )}
-            
-            <div onSubmit={handleApplyPromo} className="flex flex-col sm:flex-row gap-2 items-start sm:items-end mb-2">
-                <div className="flex flex-col w-full sm:w-auto">
-                    <label htmlFor="promo" className="text-xs font-semibold text-[#8B5C2A] mb-1">
-                        Código de Promoción
-                    </label>
-                    <input
-                        id="promo"
-                        type="text"
-                        value={promoCode}
-                        onChange={e => setPromoCode(e.target.value)}
-                        className="input w-full sm:w-48"
-                        placeholder="Ingresa tu código"
-                        disabled={paymentState === PAYMENT_STATES.PROCESSING}
-                    />
-                </div>
-                <button
-                    type="button"
-                    onClick={handleApplyPromo}
-                    className="px-4 py-2 rounded bg-[#C19A6B] text-white font-semibold text-sm hover:bg-[#8B5C2A] transition-colors duration-200 disabled:opacity-50"
-                    disabled={paymentState === PAYMENT_STATES.PROCESSING}
-                >
-                    Aplicar
-                </button>
-            </div>
-            {promoMessage && (
-                <div className="text-green-600 text-xs font-semibold mb-1">{promoMessage}</div>
-            )}
-            {promoError && (
-                <div className="text-red-500 text-xs font-semibold mb-1">{promoError}</div>
             )}
             <div className="flex flex-col gap-2 w-full">
                 <button

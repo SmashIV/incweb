@@ -19,7 +19,8 @@ import {
   ShoppingBag,
   BarChart3,
   Airplay,
-  Download
+  Download,
+  Gift
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -100,6 +101,8 @@ const OrderDetailModal = ({ isOpen, onClose, order, userInfo, loadingUserInfo })
                   <X size={24} className="text-gray-600" />
                 </button>
               </div>
+
+
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-6">
@@ -234,6 +237,8 @@ const OrderDetailModal = ({ isOpen, onClose, order, userInfo, loadingUserInfo })
                   </div>
                 </div>
               )}
+
+
 
               <div className="mt-8 flex justify-end gap-4">
                 <button
@@ -660,6 +665,13 @@ const Orders = () => {
                 </div>
               </div>
               
+              {order.promociones_aplicadas && order.promociones_aplicadas.trim() && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {order.promociones_aplicadas.split(',').map((promo, idx) => (
+                    <span key={idx} className="px-2 py-1 text-[10px] rounded bg-green-50 text-green-700 font-mono font-bold border border-green-200">{promo.trim()}</span>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className={`px-3 py-1 text-xs font-mono font-bold rounded-lg border ${getStatusColor(order.estado)}`}>
                   {order.estado?.toUpperCase() || 'N/A'}
@@ -678,6 +690,8 @@ const Orders = () => {
                   </button>
                 </div>
               </div>
+
+
             </motion.div>
           ))}
         </div>
@@ -693,6 +707,7 @@ const Orders = () => {
                   <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">STATUS</th>
                   <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">DATE</th>
                   <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">PLATFORM</th>
+                  <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">PROMOCIONES</th>
                   <th className="px-6 py-4 text-left text-xs font-mono font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">ACTIONS</th>
                 </tr>
               </thead>
@@ -735,6 +750,17 @@ const Orders = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-mono text-gray-900">{order.platform || 'N/A'}</div>
                     </td>
+                                         <td className="px-6 py-4 whitespace-nowrap">
+                       {order.promociones_aplicadas && order.promociones_aplicadas.trim() ? (
+                         <div className="flex flex-wrap gap-1">
+                           {order.promociones_aplicadas.split(',').map((promo, idx) => (
+                             <span key={idx} className="px-2 py-1 text-[10px] rounded bg-green-50 text-green-700 font-mono font-bold border border-green-200">{promo.trim()}</span>
+                           ))}
+                         </div>
+                       ) : (
+                         <span className="text-gray-400 text-xs">-</span>
+                       )}
+                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button 

@@ -21,9 +21,7 @@ const fetchPromoForItem = async (item) => {
   let precioColor = null;
   let dataTalla = null;
   let dataColor = null;
-  let promo_aplicada = null;
 
-  // Consulta promo por talla si el producto tiene talla
   if (item.talla) {
     try {
       const resTalla = await axios.get(`http://localhost:3000/promociones/por-talla?talla=${item.talla}`, {
@@ -41,7 +39,6 @@ const fetchPromoForItem = async (item) => {
     } catch {}
   }
 
-  // Consulta promo por color SIEMPRE si hay color
   if (item.color) {
     try {
       const resColor = await axios.get(`http://localhost:3000/promociones/por-color?tcolor=${encodeURIComponent(item.color)}`, {
@@ -55,73 +52,59 @@ const fetchPromoForItem = async (item) => {
         } else if (dataColor.descuento_fijo) {
           precioColor = precioColor - dataColor.descuento_fijo;
         }
-        // Usar el campo 'titulo' directamente del backend
         var tituloPromoColor = dataColor.titulo || null;
       }
     } catch {}
   }
 
   let precio_final = null;
-  // Determinar cuál promoción aplicar (la de mayor descuento)
-  if (precioTalla !== null && precioColor !== null) {
-    if (precioTalla < precioColor) {
-      precio_final = precioTalla;
-      if (dataTalla && dataTalla.hasPromo) {
-        promo_aplicada = {
-          tipo: 'talla',
-          valor: item.talla,
-          descuento_porcentaje: dataTalla.descuento_porcentaje || null,
-          descuento_fijo: dataTalla.descuento_fijo || null,
-          id_promocion: dataTalla.id_promocion || null,
-          titulo: dataTalla.titulo || null
-        };
-      }
-    } else {
-      precio_final = precioColor;
-      if (dataColor && dataColor.hasPromo) {
-        promo_aplicada = {
-          tipo: 'color',
-          valor: item.color,
-          descuento_porcentaje: dataColor.descuento_porcentaje || null,
-          descuento_fijo: dataColor.descuento_fijo || null,
-          id_promocion: dataColor.id_promocion || null,
-          titulo: tituloPromoColor
-        };
-      }
-    }
-  } else if (precioTalla !== null) {
+  let promociones_aplicadas = [];
+  
+  // Aplicar ambas promociones de forma acumulativa
+  if (precioTalla !== null) {
     precio_final = precioTalla;
     if (dataTalla && dataTalla.hasPromo) {
-      promo_aplicada = {
+      promociones_aplicadas.push({
         tipo: 'talla',
         valor: item.talla,
         descuento_porcentaje: dataTalla.descuento_porcentaje || null,
         descuento_fijo: dataTalla.descuento_fijo || null,
         id_promocion: dataTalla.id_promocion || null,
         titulo: dataTalla.titulo || null
-      };
+      });
     }
-  } else if (precioColor !== null) {
-    precio_final = precioColor;
+  }
+  
+  if (precioColor !== null) {
+    // Aplicar la promoción de color sobre el precio ya descontado por talla
+    let precioConColor = precio_final || item.precio_unitario;
+    if (dataColor.descuento_porcentaje) {
+      precioConColor = precioConColor * (1 - dataColor.descuento_porcentaje / 100);
+    } else if (dataColor.descuento_fijo) {
+      precioConColor = precioConColor - dataColor.descuento_fijo;
+    }
+    precio_final = Math.max(precioConColor, 0); // Evitar precios negativos
+    
     if (dataColor && dataColor.hasPromo) {
-      promo_aplicada = {
+      promociones_aplicadas.push({
         tipo: 'color',
         valor: item.color,
         descuento_porcentaje: dataColor.descuento_porcentaje || null,
         descuento_fijo: dataColor.descuento_fijo || null,
         id_promocion: dataColor.id_promocion || null,
         titulo: tituloPromoColor
-      };
+      });
     }
   }
+  
+  // Para mantener compatibilidad, usar la primera promoción como principal
+  const promo_aplicada = promociones_aplicadas.length > 0 ? promociones_aplicadas[0] : null;
   if (precio_final !== null) {
     precio_final = Math.round(precio_final * 100) / 100;
-    // Solo poner precio_final si es realmente un descuento
     if (precio_final < item.precio_unitario) {
       return { ...item, precio_final, promo_aplicada };
     }
   }
-  // Si no hay descuento, no poner precio_final ni promo_aplicada
   return { ...item, precio_final: undefined, promo_aplicada: null };
 };
 
